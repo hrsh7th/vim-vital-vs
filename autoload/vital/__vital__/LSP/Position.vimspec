@@ -1,0 +1,50 @@
+" あいうえお
+" かきくけこ
+" さしすせそ
+
+let s:expect = themis#helper('expect')
+let s:filepath = globpath(&runtimepath, 'autoload/vital/__vital__/LSP/Position.vimspec')
+
+Describe vital#__vital__#LSP#Position
+
+  Describe #cursor
+
+    It should return cursor position
+      enew!
+      call setline(1, ['あいうえお', 'かきくけこ', 'さしすせそ'])
+      normal! gg0jlll
+      call s:expect(vital#vital#import('LSP.Position').cursor()).to_equal({ 'line': 1, 'character': 3 })
+    End
+
+  End
+
+  Describe #vim_to_lsp
+
+    It should return lsp-position by vim-position on loaded buffer
+      enew!
+      call setline(1, ['あいうえお', 'かきくけこ', 'さしすせそ'])
+      call s:expect(vital#vital#import('LSP.Position').vim_to_lsp('%', [2, 10])).to_equal({ 'line': 1, 'character': 3 })
+    End
+
+    It should return lsp-position by vim-position on not loaded buffer
+      call s:expect(vital#vital#import('LSP.Position').vim_to_lsp(s:filepath, [2, 12])).to_equal({ 'line': 1, 'character': 5 })
+    End
+
+  End
+
+  Describe #lsp_to_vim
+
+    It should return vim-position by lsp-position on loaded buffer
+      enew!
+      call setline(1, ['あいうえお', 'かきくけこ', 'さしすせそ'])
+      call s:expect(vital#vital#import('LSP.Position').lsp_to_vim('%', { 'line': 1, 'character': 3 })).to_equal([2, 10])
+    End
+
+    It should return lsp-position by vim-position on not loaded buffer
+      call s:expect(vital#vital#import('LSP.Position').lsp_to_vim(s:filepath, { 'line': 1, 'character': 5 })).to_equal([2, 12])
+    End
+
+  End
+
+End
+

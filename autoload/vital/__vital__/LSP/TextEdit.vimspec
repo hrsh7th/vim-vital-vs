@@ -1,0 +1,242 @@
+let s:expect = themis#helper('expect')
+let s:filepath = globpath(&runtimepath, 'autoload/vital/__vital__/LSP/Position.vimspec')
+
+function! s:apply(content, text_edits, expected)
+  set hidden
+  let l:content = split(a:content, "\n", v:true)
+  enew!
+  put!=l:content
+  normal! Gdd
+
+  call vital#vital#import('LSP.TextEdit').apply(bufnr('%'), map(a:text_edits, { _, text_edit -> {
+  \   'range': {
+  \     'start': {
+  \       'line': text_edit.start[0],
+  \       'character': text_edit.start[1],
+  \     },
+  \     'end': {
+  \       'line': text_edit.end[0],
+  \       'character': text_edit.end[1],
+  \     },
+  \   },
+  \   'newText': text_edit.text
+  \ } }))
+
+  call s:expect(split(a:expected, "\n", v:true)).to_equal(getline('^', '$'))
+endfunction
+
+Describe vital#__vital__#LSP#Position
+
+  Describe #apply
+
+    " @see https://github.com/microsoft/vscode-languageserver-node/blob/master/textDocument/src/test/edits.test.ts
+
+    It Should edit inserts 1
+      call s:apply("012345678901234567890123456789", [{
+      \   'start': [0, 0],
+      \   'end': [0, 0],
+      \   'text': 'Hello'
+      \ }], "Hello012345678901234567890123456789")
+    End
+
+    It Should edit inserts 2
+      call s:apply("012345678901234567890123456789", [{
+      \   'start': [0, 1],
+      \   'end': [0, 1],
+      \   'text': 'Hello'
+      \ }], "0Hello12345678901234567890123456789")
+    End
+
+    It Should edit inserts 3
+      call s:apply("012345678901234567890123456789", [{
+      \   'start': [0, 1],
+      \   'end': [0, 1],
+      \   'text': 'Hello'
+      \ },{
+      \   'start': [0, 1],
+      \   'end': [0, 1],
+      \   'text': 'World'
+      \ }], "0HelloWorld12345678901234567890123456789")
+    End
+
+    It Should edit inserts 4
+      call s:apply("012345678901234567890123456789", [{
+      \   'start': [0, 2],
+      \   'end': [0, 2],
+      \   'text': 'One'
+      \ },{
+      \   'start': [0, 1],
+      \   'end': [0, 1],
+      \   'text': 'Hello'
+      \ },{
+      \   'start': [0, 1],
+      \   'end': [0, 1],
+      \   'text': 'World'
+      \ },{
+      \   'start': [0, 2],
+      \   'end': [0, 2],
+      \   'text': 'Two'
+      \ },{
+      \   'start': [0, 2],
+      \   'end': [0, 2],
+      \   'text': 'Three'
+      \ }], "0HelloWorld1OneTwoThree2345678901234567890123456789")
+    End
+
+    It Should edit replaces 1
+      call s:apply("012345678901234567890123456789", [{
+      \   'start': [0, 3],
+      \   'end': [0, 6],
+      \   'text': 'Hello'
+      \ }], "012Hello678901234567890123456789")
+    End
+
+    It Should edit replaces 2
+      call s:apply("012345678901234567890123456789", [{
+      \   'start': [0, 3],
+      \   'end': [0, 6],
+      \   'text': 'Hello'
+      \ }, {
+      \   'start': [0, 6],
+      \   'end': [0, 9],
+      \   'text': 'World'
+      \ }], "012HelloWorld901234567890123456789")
+    End
+
+    It Should edit replaces 3
+      call s:apply("012345678901234567890123456789", [{
+      \   'start': [0, 3],
+      \   'end': [0, 6],
+      \   'text': 'Hello'
+      \ }, {
+      \   'start': [0, 6],
+      \   'end': [0, 6],
+      \   'text': 'World'
+      \ }], "012HelloWorld678901234567890123456789")
+    End
+
+    It Should edit replaces 4
+      call s:apply("012345678901234567890123456789", [{
+      \   'start': [0, 6],
+      \   'end': [0, 6],
+      \   'text': 'World'
+      \ }, {
+      \   'start': [0, 3],
+      \   'end': [0, 6],
+      \   'text': 'Hello'
+      \ }], "012HelloWorld678901234567890123456789")
+    End
+
+    It Should edit replaces 5
+      call s:apply("012345678901234567890123456789", [{
+      \   'start': [0, 3],
+      \   'end': [0, 3],
+      \   'text': 'World'
+      \ }, {
+      \   'start': [0, 3],
+      \   'end': [0, 6],
+      \   'text': 'Hello'
+      \ }], "012WorldHello678901234567890123456789")
+    End
+
+    It Should edit multiline 1
+      call s:apply("0\n1\n2\n3\n4", [{
+      \   'start': [2, 0],
+      \   'end': [3, 0],
+      \   'text': 'Hello'
+      \ }, {
+      \   'start': [1, 1],
+      \   'end': [1, 1],
+      \   'text': 'World'
+      \ }], "0\n1World\nHello3\n4")
+    End
+
+    It Should throw overlap error 1
+      let s:catch = v:false
+      try
+        call s:apply("012345678901234567890123456789", [{
+        \   'start': [0, 3],
+        \   'end': [0, 6],
+        \   'text': 'Hello'
+        \ }, {
+        \   'start': [0, 3],
+        \   'end': [0, 3],
+        \   'text': 'World'
+        \ }])
+      catch /.*/
+        let s:catch = v:true
+      endtry
+      call s:expect(s:catch).to_equal(v:true)
+    End
+
+    It Should throw overlap error 2
+      let s:catch = v:false
+      try
+        call s:apply("012345678901234567890123456789", [{
+        \   'start': [0, 3],
+        \   'end': [0, 6],
+        \   'text': 'Hello'
+        \ }, {
+        \   'start': [0, 3],
+        \   'end': [0, 4],
+        \   'text': 'World'
+        \ }])
+      catch /.*/
+        let s:catch = v:true
+      endtry
+      call s:expect(s:catch).to_equal(v:true)
+    End
+
+    It Should delete multiline 1
+      call s:apply("abcdefg\nhijklmn\nopqrstu\nvwxyg", [{
+      \   'start': [0, 0],
+      \   'end': [1, 0],
+      \   'text': ''
+      \ }, {
+      \   'start': [1, 0],
+      \   'end': [2, 0],
+      \   'text': ''
+      \ }], "opqrstu\nvwxyg")
+    End
+
+    It Should delete multiline 2
+      call s:apply("abcdefg\nhijklmn\nopqrstu\nvwxyg", [{
+      \   'start': [0, 0],
+      \   'end': [1, 4],
+      \   'text': ''
+      \ }, {
+      \   'start': [1, 4],
+      \   'end': [2, 4],
+      \   'text': ''
+      \ }], "stu\nvwxyg")
+    End
+
+    It Should add/delete multiline 1
+      call s:apply("abcdefg\nhijklmn\nopqrstu\nvwxyg", [{
+      \   'start': [0, 0],
+      \   'end': [1, 0],
+      \   'text': "12345\n"
+      \ }, {
+      \   'start': [1, 0],
+      \   'end': [2, 0],
+      \   'text': "67890\n"
+      \ }], "12345\n67890\nopqrstu\nvwxyg")
+    End
+
+    It Should add/delete multiline 2
+      call s:apply("abcdefg\nhijklmn\nopqrstu\nvwxyg", [{
+      \   'start': [0, 0],
+      \   'end': [1, 4],
+      \   'text': ''
+      \ }, {
+      \   'start': [1, 4],
+      \   'end': [2, 4],
+      \   'text': ''
+      \ }], "stu\nvwxyg")
+    End
+
+
+  End
+
+End
+
