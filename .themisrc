@@ -8,3 +8,4 @@ call themis#option('exclude', ['\.vim$', './misc'])
 call themis#option('recursive', 1)
 call themis#option('runtimepath', [s:vital_path])
 
+set hidden

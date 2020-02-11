@@ -1,17 +1,10 @@
 "
-" _vital_loaded
-"
-function! s:_vital_loaded(V) abort
-  let s:Position = a:V.import('LSP.Position')
-endfunction
-
-"
 " apply
 "
 function! s:apply(expr, text_edits) abort
   let l:current_bufnr = bufnr('%')
   let l:target_bufnr = bufnr(a:expr)
-  let l:cursor_pos = s:Position.lsp_to_vim('%', s:Position.cursor())
+  let l:cursor_pos = getpos('.')[1 : 2]
 
   execute printf('keepalt keepjumps %sbuffer!', l:target_bufnr)
   for l:text_edit in s:_normalize(l:target_bufnr, a:text_edits)
@@ -20,7 +13,7 @@ function! s:apply(expr, text_edits) abort
   execute printf('keepalt keepjumps %sbuffer!', l:current_bufnr)
 
   if l:current_bufnr == l:target_bufnr
-    call setpos('.', l:cursor_pos)
+    call cursor(l:cursor_pos)
   endif
 endfunction
 
@@ -28,12 +21,11 @@ endfunction
 " _apply
 "
 function! s:_apply(bufnr, text_edit, cursor_pos) abort
-  let l:start_pos = s:Position.lsp_to_vim(a:bufnr, a:text_edit.range.start)
-  let l:end_pos = s:Position.lsp_to_vim(a:bufnr, a:text_edit.range.end)
-  let l:start_line = getline(l:start_pos[0])
-  let l:end_line = getline(l:end_pos[0])
-  let l:before_line = strpart(l:start_line, 0, l:start_pos[1] - 1)
-  let l:after_line = strpart(l:end_line, l:end_pos[1] - 1, strlen(l:end_line) - (l:end_pos[1] - 1))
+  " create before/after line.
+  let l:start_line = getline(a:text_edit.range.start.line + 1)
+  let l:end_line = getline(a:text_edit.range.end.line + 1)
+  let l:before_line = strcharpart(l:start_line, 0, a:text_edit.range.start.character)
+  let l:after_line = strcharpart(l:end_line, a:text_edit.range.end.character, strlen(l:end_line) - a:text_edit.range.end.character)
 
   " create new lines.
   let l:new_lines = split(a:text_edit.newText, "\n", v:true)
@@ -41,11 +33,19 @@ function! s:_apply(bufnr, text_edit, cursor_pos) abort
   let l:new_lines[-1] = l:new_lines[-1] . l:after_line
   let l:new_lines_len = len(l:new_lines)
 
+  " fix cursor pos
+  if a:text_edit.range.end.line <= a:cursor_pos[0]
+    let a:cursor_pos[0] += l:new_lines_len - (a:text_edit.range.end.line - a:text_edit.range.start.line) - 1
+  endif
+
   " append new lines.
-  call append(l:start_pos[0] - 1, l:new_lines)
+  call append(a:text_edit.range.start.line, l:new_lines)
 
   " remove old lines
-  execute printf('%s,%sdelete _', l:new_lines_len + l:start_pos[0], l:new_lines_len + l:end_pos[0])
+  execute printf('%s,%sdelete _',
+  \   l:new_lines_len + a:text_edit.range.start.line + 1,
+  \   l:new_lines_len + a:text_edit.range.end.line + 1
+  \ )
 endfunction
 
 "
