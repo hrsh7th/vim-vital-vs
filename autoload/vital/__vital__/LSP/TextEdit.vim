@@ -30,44 +30,22 @@ endfunction
 function! s:_apply(bufnr, text_edit, cursor_pos) abort
   let l:start_pos = s:Position.lsp_to_vim(a:bufnr, a:text_edit.range.start)
   let l:end_pos = s:Position.lsp_to_vim(a:bufnr, a:text_edit.range.end)
-
   let l:start_line = getline(l:start_pos[0])
-  let l:before_line = strpart(l:start_line, 0, l:start_pos[1] - 1)
   let l:end_line = getline(l:end_pos[0])
+  let l:before_line = strpart(l:start_line, 0, l:start_pos[1] - 1)
   let l:after_line = strpart(l:end_line, l:end_pos[1] - 1, strlen(l:end_line) - (l:end_pos[1] - 1))
 
-  let l:new_text_lines = split(a:text_edit.newText, "\n", v:true)
-  let l:new_text_lines[0] = l:before_line . l:new_text_lines[0]
-  let l:new_text_lines[-1] = l:new_text_lines[-1] . l:after_line
+  " create new lines.
+  let l:new_lines = split(a:text_edit.newText, "\n", v:true)
+  let l:new_lines[0] = l:before_line . l:new_lines[0]
+  let l:new_lines[-1] = l:new_lines[-1] . l:after_line
+  let l:new_lines_len = len(l:new_lines)
 
-  let l:new_text_line_count = len(l:new_text_lines)
-  let l:text_edit_line_count = l:end_pos[0] - l:start_pos[0]
+  " append new lines.
+  call append(l:start_pos[0] - 1, l:new_lines)
 
-  " fix cursor pos
-  if l:end_pos[0] <= a:cursor_pos[0]
-    if l:end_pos[0] == a:cursor_pos[0]
-      if  l:end_pos[1] <= a:cursor_pos[1]
-        let a:cursor_pos[1] = a:cursor_pos[1] + strlen(l:new_text_lines[-1]) - strlen(l:end_line)
-      endif
-    endif
-
-    " line fix.
-    let a:cursor_pos[0] += l:new_text_line_count - l:text_edit_line_count - 1
-  endif
-
-  " padding
-  let l:padding = l:new_text_line_count - l:text_edit_line_count - 1
-  if l:padding > 0
-    call append(l:end_pos[0] - 1, repeat([''], l:padding))
-  endif
-
-  call setline(l:start_pos[0], l:new_text_lines)
-
-  if l:padding < 0
-    let l:start = l:start_pos[0] + l:new_text_line_count
-    let l:end = min([l:end_pos[0] + abs(l:padding) - 1, len(getbufline(a:bufnr, '^', '$'))])
-    execute printf('%s,%sdelete _', l:start, l:end)
-  endif
+  " remove old lines
+  execute printf('%s,%sdelete _', l:new_lines_len + l:start_pos[0], l:new_lines_len + l:end_pos[0])
 endfunction
 
 "
