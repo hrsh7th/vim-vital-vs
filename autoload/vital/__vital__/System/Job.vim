@@ -6,6 +6,13 @@ function! s:_vital_loaded(V) abort
 endfunction
 
 "
+" _vital_depends
+"
+function! s:_vital_depends() abort
+  return ['Event.Emitter']
+endfunction
+
+"
 " new
 "
 function! s:new(args) abort

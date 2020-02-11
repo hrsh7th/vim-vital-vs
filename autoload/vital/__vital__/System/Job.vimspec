@@ -1,11 +1,12 @@
 let s:expect = themis#helper('expect')
+let s:Job = vital#vital#import('System.Job')
 
 Describe vital#__vital__#System#Job
 
   Describe #start
 
     It should start process
-      let s:job = vital#vital#import('System.Job').new({
+      let s:job = s:Job.new({
       \   'command': ['sh', globpath(&runtimepath, 'misc/vital-vs/loop.sh')]
       \ })
 
@@ -22,7 +23,7 @@ Describe vital#__vital__#System#Job
   Describe #stop
 
     It should stop process
-      let s:job = vital#vital#import('System.Job').new({
+      let s:job = s:Job.new({
       \   'command': ['sh', globpath(&runtimepath, 'misc/vital-vs/loop.sh')]
       \ })
 

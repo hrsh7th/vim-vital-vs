@@ -1,5 +1,4 @@
 let s:expect = themis#helper('expect')
-let s:filepath = globpath(&runtimepath, 'autoload/vital/__vital__/LSP/Position.vimspec')
 let s:TextEdit = vital#vital#import('LSP.TextEdit')
 
 Describe vital#__vital__#LSP#TextEdit
@@ -216,17 +215,17 @@ Describe vital#__vital__#LSP#TextEdit
 
 End
 
-function! s:buffer(content) abort
+"
+" apply
+"
+function! s:apply(content, text_edits, expected) abort
   enew!
   let l:content = type(a:content) == type([])
   \   ? a:content
   \   : split(a:content, "\n", v:true)
   put!=l:content
   normal! Gdd
-endfunction
 
-function! s:apply(content, text_edits, expected) abort
-  call s:buffer(a:content)
   call s:TextEdit.apply(bufnr('%'), map(a:text_edits, { _, text_edit -> {
   \   'range': {
   \     'start': {

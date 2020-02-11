@@ -4,7 +4,7 @@
 function! s:apply(expr, text_edits) abort
   let l:current_bufnr = bufnr('%')
   let l:target_bufnr = bufnr(a:expr)
-  let l:cursor_pos = getpos('.')[1 : 2]
+  let l:cursor_pos = getpos('.')[1 : 3]
 
   execute printf('keepalt keepjumps %sbuffer!', l:target_bufnr)
   for l:text_edit in s:_normalize(l:target_bufnr, a:text_edits)
@@ -25,7 +25,7 @@ function! s:_apply(bufnr, text_edit, cursor_pos) abort
   let l:start_line = getline(a:text_edit.range.start.line + 1)
   let l:end_line = getline(a:text_edit.range.end.line + 1)
   let l:before_line = strcharpart(l:start_line, 0, a:text_edit.range.start.character)
-  let l:after_line = strcharpart(l:end_line, a:text_edit.range.end.character, strlen(l:end_line) - a:text_edit.range.end.character)
+  let l:after_line = strcharpart(l:end_line, a:text_edit.range.end.character, strchars(l:end_line) - a:text_edit.range.end.character)
 
   " create new lines.
   let l:new_lines = split(a:text_edit.newText, "\n", v:true)
