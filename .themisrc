@@ -1,0 +1,10 @@
+let s:vital_path = expand('<sfile>:p:h') . '/misc/vital.vim'
+
+if !isdirectory(s:vital_path)
+  call system(printf('git clone --depth 1 https://github.com/vim-jp/vital.vim %s', s:vital_path))
+endif
+
+call themis#option('exclude', ['\.vim$', './misc'])
+call themis#option('recursive', 1)
+call themis#option('runtimepath', [s:vital_path])
+

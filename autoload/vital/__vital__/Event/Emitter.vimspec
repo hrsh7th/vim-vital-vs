@@ -1,0 +1,62 @@
+let s:expect = themis#helper('expect')
+
+Describe vital#__vital__#Event#Emitter
+
+  Describe #on
+
+    It should call listener onece
+      let s:emitter = vital#vital#import('Event.Emitter').new()
+      call s:emitter.on('test', { -> {} })
+    End
+
+  End
+
+  Describe #listener_count
+
+    It should return listener count
+      let s:emitter = vital#vital#import('Event.Emitter').new()
+      call s:expect(s:emitter.listener_count('test')).to_equal(0)
+      call s:emitter.on('test', { -> {} })
+      call s:expect(s:emitter.listener_count('test')).to_equal(1)
+    End
+
+  End
+
+  Describe #off
+
+    It should remove by listener
+      let s:emitter = vital#vital#import('Event.Emitter').new()
+      let s:Listener = { -> {} }
+      call s:emitter.on('test', s:Listener)
+      call s:expect(s:emitter.listener_count('test')).to_equal(1)
+      call s:emitter.off('test', s:Listener)
+      call s:expect(s:emitter.listener_count('test')).to_equal(0)
+    End
+
+    It should remove by event_name
+      let s:emitter = vital#vital#import('Event.Emitter').new()
+      call s:emitter.on('test', { -> {} })
+      call s:emitter.on('test', { -> {} })
+      call s:expect(s:emitter.listener_count('test')).to_equal(2)
+      call s:emitter.off('test')
+      call s:expect(s:emitter.listener_count('test')).to_equal(0)
+    End
+
+  End
+
+  Describe #emit
+
+    It should call listener
+      let s:emitter = vital#vital#import('Event.Emitter').new()
+      let s:count = 0
+      let s:Listener = { -> execute('let s:count += 1') }
+      call s:emitter.on('test', s:Listener)
+      call s:expect(s:count).to_equal(0)
+      call s:emitter.emit('test')
+      call s:expect(s:count).to_equal(1)
+    End
+
+  End
+
+End
+
