@@ -1,0 +1,19 @@
+{
+  "name": "vim-vital-vs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "themis ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hrsh7th/vim-vital-vs.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hrsh7th/vim-vital-vs/issues"
+  },
+  "homepage": "https://github.com/hrsh7th/vim-vital-vs#readme"
+}
