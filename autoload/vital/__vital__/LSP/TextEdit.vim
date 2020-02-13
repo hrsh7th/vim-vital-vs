@@ -19,15 +19,21 @@ function! s:apply(expr, text_edits) abort
   let l:current_bufnr = bufnr('%')
   let l:target_bufnr = bufnr(a:expr)
   let l:cursor_pos = getpos('.')[1 : 3]
+  let l:cursor_offset = 0
+  let l:topline = line('w0')
 
   execute printf('keepalt keepjumps %sbuffer!', l:target_bufnr)
   for l:text_edit in s:_normalize(l:target_bufnr, a:text_edits)
-    call s:_apply(l:target_bufnr, l:text_edit, l:cursor_pos)
+    let l:cursor_offset += s:_apply(l:target_bufnr, l:text_edit, l:cursor_pos)
   endfor
   execute printf('keepalt keepjumps %sbuffer!', l:current_bufnr)
 
   if l:current_bufnr == l:target_bufnr
+    let l:length = strlen(getline(l:cursor_pos[0]))
+    let l:cursor_pos[2] = max([0, l:cursor_pos[1] + l:cursor_pos[2] - l:length])
+    let l:cursor_pos[1] = min([l:length, l:cursor_pos[1] + l:cursor_pos[2]])
     call cursor(l:cursor_pos)
+    call winrestview({ 'topline': l:topline + l:cursor_offset })
   endif
 endfunction
 
@@ -48,8 +54,10 @@ function! s:_apply(bufnr, text_edit, cursor_pos) abort
   let l:new_lines_len = len(l:new_lines)
 
   " fix cursor pos
+  let l:cursor_offset = 0
   if a:text_edit.range.end.line <= a:cursor_pos[0]
-    let a:cursor_pos[0] += l:new_lines_len - (a:text_edit.range.end.line - a:text_edit.range.start.line) - 1
+    let l:cursor_offset = l:new_lines_len - (a:text_edit.range.end.line - a:text_edit.range.start.line) - 1
+    let a:cursor_pos[0] += l:cursor_offset
   endif
 
   " append new lines.
@@ -60,6 +68,8 @@ function! s:_apply(bufnr, text_edit, cursor_pos) abort
   \   l:new_lines_len + a:text_edit.range.start.line + 1,
   \   l:new_lines_len + a:text_edit.range.end.line + 1
   \ )
+
+  return l:cursor_offset
 endfunction
 
 "
