@@ -1,0 +1,25 @@
+let s:expect = themis#helper('expect')
+let s:Text = vital#vital#import('LSP.Text')
+
+Describe vital#__vital__#LSP#Text
+
+  Describe #normalize_eol
+
+    It should normalize \r\n -> \n
+      call s:expect(s:Text.normalize_eol("あいうえお\r\nかきくけこ")).to_equal("あいうえお\nかきくけこ")
+    End
+
+    It should normalize \r -> \n
+      call s:expect(s:Text.normalize_eol("あいうえお\rかきくけこ")).to_equal("あいうえお\nかきくけこ")
+    End
+
+    It should normalize \r\n\r -> \n\n
+      call s:expect(s:Text.normalize_eol("あいうえお\r\n\rかきくけこ")).to_equal("あいうえお\n\nかきくけこ")
+    End
+
+  End
+
+End
+
+
+
