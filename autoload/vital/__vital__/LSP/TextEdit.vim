@@ -1,4 +1,18 @@
 "
+" _vital_loaded
+"
+function! s:_vital_loaded(V) abort
+  let s:Text = a:V.import('LSP.Text')
+endfunction
+
+"
+" _vital_depends
+"
+function! s:_vital_depends() abort
+  return ['LSP.Text']
+endfunction
+
+"
 " apply
 "
 function! s:apply(expr, text_edits) abort
@@ -28,7 +42,7 @@ function! s:_apply(bufnr, text_edit, cursor_pos) abort
   let l:after_line = strcharpart(l:end_line, a:text_edit.range.end.character, strchars(l:end_line) - a:text_edit.range.end.character)
 
   " create new lines.
-  let l:new_lines = split(a:text_edit.newText, "\n", v:true)
+  let l:new_lines = s:Text.split_eol(a:text_edit.newText)
   let l:new_lines[0] = l:before_line . l:new_lines[0]
   let l:new_lines[-1] = l:new_lines[-1] . l:after_line
   let l:new_lines_len = len(l:new_lines)
