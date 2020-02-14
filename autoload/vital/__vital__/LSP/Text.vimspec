@@ -18,7 +18,7 @@ Describe vital#__vital__#LSP#Text
     End
 
     It should normalize \r\n\n\r\r\n -> \n\n\n\n
-      call s:expect(s:Text.normalize_eol("あいうえお\r\n\n\r\r\nrかきくけこ")).to_equal("あいうえお\n\n\n\nかきくけこ")
+      call s:expect(s:Text.normalize_eol("あいうえお\r\n\n\r\r\nかきくけこ")).to_equal("あいうえお\n\n\n\nかきくけこ")
     End
 
   End
