@@ -5,6 +5,27 @@ Describe vital#__vital__#LSP#TextEdit
 
   Describe #apply
 
+    Describe not loaded buffer
+      let s:target_path = globpath(&runtimepath, '/autoload/vital/__vital__/LSP/TextEdit.vimspec')
+      call s:TextEdit.apply(s:target_path, [{
+      \   'range': {
+      \     'start': {
+      \       'line': 0,
+      \       'character': 0,
+      \     },
+      \     'end': {
+      \       'line': 1,
+      \       'character': 0,
+      \     }
+      \   },
+      \   'newText': "aiueo\n"
+      \ }])
+
+      call s:expect(getbufline(s:target_path, 1)).to_equal([
+      \   'aiueo'
+      \ ])
+    End
+
     " @see https://github.com/microsoft/vscode-languageserver-node/blob/master/textDocument/src/test/edits.test.ts
 
     It should edit inserts 1
