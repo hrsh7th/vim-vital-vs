@@ -2,14 +2,14 @@
 " _vital_loaded
 "
 function! s:_vital_loaded(V) abort
-  let s:Emitter = a:V.import('Event.Emitter')
+  let s:Emitter = a:V.import('VS.Event.Emitter')
 endfunction
 
 "
 " _vital_depends
 "
 function! s:_vital_depends() abort
-  return ['Event.Emitter']
+  return ['VS.Event.Emitter']
 endfunction
 
 "

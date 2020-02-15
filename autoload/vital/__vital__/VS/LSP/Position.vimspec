@@ -3,10 +3,10 @@
 " さしすせそ
 
 let s:expect = themis#helper('expect')
-let s:filepath = globpath(&runtimepath, 'autoload/vital/__vital__/LSP/Position.vimspec')
-let s:Position = vital#vital#import('LSP.Position')
+let s:filepath = globpath(&runtimepath, 'autoload/vital/__vital__/VS/LSP/Position.vimspec')
+let s:Position = vital#vital#import('VS.LSP.Position')
 
-Describe vital#__vital__#LSP#Position
+Describe vital#__vital__#VS#LSP#Position
 
   Describe #cursor
 
@@ -14,7 +14,7 @@ Describe vital#__vital__#LSP#Position
       enew!
       call setline(1, ['あいうえお', 'かきくけこ', 'さしすせそ'])
       normal! gg0jlll
-      call s:expect(vital#vital#import('LSP.Position').cursor()).to_equal({ 'line': 1, 'character': 3 })
+      call s:expect(s:Position.cursor()).to_equal({ 'line': 1, 'character': 3 })
     End
 
   End

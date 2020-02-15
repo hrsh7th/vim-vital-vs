@@ -1,11 +1,11 @@
 let s:expect = themis#helper('expect')
-let s:Emitter = vital#vital#import('Event.Emitter')
+let s:Emitter = vital#vital#import('VS.Event.Emitter')
 
-Describe vital#__vital__#Event#Emitter
+Describe vital#__vital__#VS#Event#Emitter
 
   Describe #on
 
-    It should call listener onece
+    It should add listener
       let s:emitter = s:Emitter.new()
       call s:emitter.on('test', { -> {} })
     End

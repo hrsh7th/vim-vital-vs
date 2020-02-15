@@ -2,16 +2,16 @@
 " _vital_loaded
 "
 function! s:_vital_loaded(V) abort
-  let s:Job = a:V.import('System.Job')
   let s:Promise = a:V.import('Async.Promise')
-  let s:Emitter = a:V.import('Event.Emitter')
+  let s:Job = a:V.import('VS.System.Job')
+  let s:Emitter = a:V.import('VS.Event.Emitter')
 endfunction
 
 "
 " _vital_depends
 "
 function! s:_vital_depends() abort
-  return ['Event.Emitter', 'System.Job', 'Async.Promise']
+  return ['Async.Promise', 'VS.Event.Emitter', 'VS.System.Job']
 endfunction
 
 "

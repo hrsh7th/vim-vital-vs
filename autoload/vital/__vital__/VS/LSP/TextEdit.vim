@@ -2,14 +2,14 @@
 " _vital_loaded
 "
 function! s:_vital_loaded(V) abort
-  let s:Text = a:V.import('LSP.Text')
+  let s:Text = a:V.import('VS.LSP.Text')
 endfunction
 
 "
 " _vital_depends
 "
 function! s:_vital_depends() abort
-  return ['LSP.Text']
+  return ['VS.LSP.Text']
 endfunction
 
 "
@@ -109,7 +109,7 @@ function! s:_check(text_edits) abort
       \   l:range.end.line == l:text_edit.range.start.line &&
       \   l:range.end.character > l:text_edit.range.start.character
       \ )
-        throw 'LSP.TextEdit: range overlapped.'
+        throw 'VS.LSP.TextEdit: range overlapped.'
       endif
       let l:range = l:text_edit.range
     endfor

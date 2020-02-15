@@ -1,13 +1,13 @@
 let s:expect = themis#helper('expect')
-let s:TextEdit = vital#vital#import('LSP.TextEdit')
+let s:TextEdit = vital#vital#import('VS.LSP.TextEdit')
 
-Describe vital#__vital__#LSP#TextEdit
+Describe vital#__vital__#VS#LSP#TextEdit
 
   Describe #apply
 
     Describe not loaded buffer
-      let s:target_path = globpath(&runtimepath, '/autoload/vital/__vital__/LSP/TextEdit.vimspec')
-      call s:TextEdit.apply(s:target_path, [{
+      let l:target_path = globpath(&runtimepath, '/autoload/vital/__vital__/VS/LSP/TextEdit.vimspec')
+      call s:TextEdit.apply(l:target_path, [{
       \   'range': {
       \     'start': {
       \       'line': 0,
@@ -21,7 +21,7 @@ Describe vital#__vital__#LSP#TextEdit
       \   'newText': "aiueo\n"
       \ }])
 
-      call s:expect(getbufline(s:target_path, 1)).to_equal([
+      call s:expect(getbufline(l:target_path, 1)).to_equal([
       \   'aiueo'
       \ ])
     End

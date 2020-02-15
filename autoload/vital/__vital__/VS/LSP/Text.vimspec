@@ -1,7 +1,7 @@
 let s:expect = themis#helper('expect')
-let s:Text = vital#vital#import('LSP.Text')
+let s:Text = vital#vital#import('VS.LSP.Text')
 
-Describe vital#__vital__#LSP#Text
+Describe vital#__vital__#VS#LSP#Text
 
   Describe #normalize_eol
 
