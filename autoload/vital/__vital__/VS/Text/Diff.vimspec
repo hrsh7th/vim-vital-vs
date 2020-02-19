@@ -1,0 +1,30 @@
+let s:expect = themis#helper('expect')
+let s:Diff = vital#vital#import('VS.Text.Diff')
+
+Describe vital#__vital__#VS#Text#Diff
+
+  Describe #compute
+
+    " TODO
+
+  End
+
+End
+
+function! s:diff(args) abort
+  return {
+  \   'range': {
+  \     'start': {
+  \       'line': a:args.start[0],
+  \       'character': a:args.start[1],
+  \     },
+  \     'end': {
+  \       'line': a:args.end[0],
+  \       'character': a:args.end[1],
+  \     },
+  \   },
+  \   'text': a:args.text,
+  \   'rangeLength': a:args.rangeLength,
+  \ }
+endfunction
+
