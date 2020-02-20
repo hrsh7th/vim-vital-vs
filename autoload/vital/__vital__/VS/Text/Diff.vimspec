@@ -5,7 +5,496 @@ Describe vital#__vital__#VS#Text#Diff
 
   Describe #compute
 
-    " TODO
+    Describe empty
+      It should compute diff when empty -> empty
+        call s:expect(s:Diff.compute(
+        \   [],
+        \   [],
+        \ )).to_equal(s:diff({
+        \   'start': [0, 0],
+        \   'end': [0, 0],
+        \   'text': '',
+        \   'rangeLength': 0
+        \ }))
+      End
+
+      It should compute diff when empty -> not empty
+        call s:expect(s:Diff.compute(
+        \   [],
+        \   ['abc'],
+        \ )).to_equal(s:diff({
+        \   'start': [0, 0],
+        \   'end': [0, 0],
+        \   'text': "abc\n",
+        \   'rangeLength': 0
+        \ }))
+      End
+
+      It should compute diff when not empty -> empty
+        call s:expect(s:Diff.compute(
+        \   ['abc'],
+        \   [],
+        \ )).to_equal(s:diff({
+        \   'start': [0, 0],
+        \   'end': [1, 0],
+        \   'text': '',
+        \   'rangeLength': 4
+        \ }))
+      End
+
+    End
+
+    Describe line added
+
+      It should compute diff when line added on first of lines
+        call s:expect(s:Diff.compute(
+        \   ['abc'],
+        \   ['foo', 'abc'],
+        \ )).to_equal(s:diff({
+        \   'start': [0, 0],
+        \   'end': [0, 0],
+        \   'text': "foo\n",
+        \   'rangeLength': 0
+        \ }))
+      End
+
+      It should compute diff when line added on middle of lines
+        call s:expect(s:Diff.compute(
+        \   ['abc', 'def'],
+        \   ['abc', 'foo', 'def'],
+        \ )).to_equal(s:diff({
+        \   'start': [1, 0],
+        \   'end': [1, 0],
+        \   'text': "foo\n",
+        \   'rangeLength': 0
+        \ }))
+      End
+
+      It should compute diff when line added on last of lines
+        call s:expect(s:Diff.compute(
+        \   ['abc'],
+        \   ['abc', 'foo'],
+        \ )).to_equal(s:diff({
+        \   'start': [1, 0],
+        \   'end': [1, 0],
+        \   'text': "foo\n",
+        \   'rangeLength': 0
+        \ }))
+      End
+
+    End
+
+    Describe line removed
+
+      It should compute diff when line removed on first of lines
+        call s:expect(s:Diff.compute(
+        \   ['abc', 'def'],
+        \   ['def'],
+        \ )).to_equal(s:diff({
+        \   'start': [0, 0],
+        \   'end': [1, 0],
+        \   'text': '',
+        \   'rangeLength': 4
+        \ }))
+      End
+
+      It should compute diff when line removed on middle of lines
+        call s:expect(s:Diff.compute(
+        \   ['abc', 'def', 'ghi'],
+        \   ['abc', 'ghi'],
+        \ )).to_equal(s:diff({
+        \   'start': [1, 0],
+        \   'end': [2, 0],
+        \   'text': '',
+        \   'rangeLength': 4
+        \ }))
+      End
+
+      It should compute diff when line removed on last of lines
+        call s:expect(s:Diff.compute(
+        \   ['abc', 'def'],
+        \   ['abc'],
+        \ )).to_equal(s:diff({
+        \   'start': [1, 0],
+        \   'end': [2, 0],
+        \   'text': '',
+        \   'rangeLength': 4
+        \ }))
+      End
+
+    End
+
+    Describe char added
+
+      Describe first line
+
+        It should compute diff when char added on first of first line
+          call s:expect(s:Diff.compute(
+          \   ['abc'],
+          \   ['fooabc'],
+          \ )).to_equal(s:diff({
+          \   'start': [0, 0],
+          \   'end': [0, 0],
+          \   'text': 'foo',
+          \   'rangeLength': 0
+          \ }))
+        End
+
+        It should compute diff when char added on middle of first line
+          call s:expect(s:Diff.compute(
+          \   ['abc'],
+          \   ['abfooc'],
+          \ )).to_equal(s:diff({
+          \   'start': [0, 2],
+          \   'end': [0, 2],
+          \   'text': 'foo',
+          \   'rangeLength': 0
+          \ }))
+        End
+
+        It should compute diff when char added on last of first line
+          call s:expect(s:Diff.compute(
+          \   ['abc'],
+          \   ['abcfoo'],
+          \ )).to_equal(s:diff({
+          \   'start': [0, 3],
+          \   'end': [0, 3],
+          \   'text': 'foo',
+          \   'rangeLength': 0
+          \ }))
+        End
+
+      End
+
+      Describe middle line
+
+        It should compute diff when char added on first of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'ghi'],
+          \   ['abc', 'foodef', 'ghi'],
+          \ )).to_equal(s:diff({
+          \   'start': [1, 0],
+          \   'end': [1, 0],
+          \   'text': 'foo',
+          \   'rangeLength': 0
+          \ }))
+        End
+
+        It should compute diff when char added on middle of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'ghi'],
+          \   ['abc', 'defoof', 'ghi'],
+          \ )).to_equal(s:diff({
+          \   'start': [1, 3],
+          \   'end': [1, 3],
+          \   'text': 'oof',
+          \   'rangeLength': 0
+          \ }))
+        End
+
+        It should compute diff when char added on last of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'ghi'],
+          \   ['abc', 'deffoo', 'ghi'],
+          \ )).to_equal(s:diff({
+          \   'start': [1, 3],
+          \   'end': [1, 3],
+          \   'text': 'foo',
+          \   'rangeLength': 0
+          \ }))
+        End
+
+      End
+
+      Describe last line
+
+        It should compute diff when char added on first of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'ghi'],
+          \   ['abc', 'def', 'fooghi'],
+          \ )).to_equal(s:diff({
+          \   'start': [2, 0],
+          \   'end': [2, 0],
+          \   'text': 'foo',
+          \   'rangeLength': 0
+          \ }))
+        End
+
+        It should compute diff when char added on middle of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'ghi'],
+          \   ['abc', 'def', 'ghfooi'],
+          \ )).to_equal(s:diff({
+          \   'start': [2, 2],
+          \   'end': [2, 2],
+          \   'text': 'foo',
+          \   'rangeLength': 0
+          \ }))
+        End
+
+        It should compute diff when char added on last of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'ghi'],
+          \   ['abc', 'def', 'ghifoo'],
+          \ )).to_equal(s:diff({
+          \   'start': [2, 3],
+          \   'end': [2, 3],
+          \   'text': 'foo',
+          \   'rangeLength': 0
+          \ }))
+        End
+
+      End
+
+    End
+
+    Describe char removed
+
+      Describe first line
+
+        It should compute diff when char removed on first of first line
+          call s:expect(s:Diff.compute(
+          \   ['fooabc'],
+          \   ['abc'],
+          \ )).to_equal(s:diff({
+          \   'start': [0, 0],
+          \   'end': [0, 3],
+          \   'text': '',
+          \   'rangeLength': 3
+          \ }))
+        End
+
+        It should compute diff when char removed on middle of first line
+          call s:expect(s:Diff.compute(
+          \   ['abfooc'],
+          \   ['abc'],
+          \ )).to_equal(s:diff({
+          \   'start': [0, 2],
+          \   'end': [0, 5],
+          \   'text': '',
+          \   'rangeLength': 3
+          \ }))
+        End
+
+        It should compute diff when char removed on last of first line
+          call s:expect(s:Diff.compute(
+          \   ['abcfoo'],
+          \   ['abc'],
+          \ )).to_equal(s:diff({
+          \   'start': [0, 3],
+          \   'end': [0, 6],
+          \   'text': '',
+          \   'rangeLength': 3
+          \ }))
+        End
+
+      End
+
+      Describe middle line
+
+        It should compute diff when char removed on first of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'foodef', 'ghi'],
+          \   ['abc', 'def', 'ghi'],
+          \ )).to_equal(s:diff({
+          \   'start': [1, 0],
+          \   'end': [1, 3],
+          \   'text': '',
+          \   'rangeLength': 3
+          \ }))
+        End
+
+        It should compute diff when char removed on middle of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'defoof', 'ghi'],
+          \   ['abc', 'def', 'ghi'],
+          \ )).to_equal(s:diff({
+          \   'start': [1, 3],
+          \   'end': [1, 6],
+          \   'text': '',
+          \   'rangeLength': 3
+          \ }))
+        End
+
+        It should compute diff when char removed on last of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'deffoo', 'ghi'],
+          \   ['abc', 'def', 'ghi'],
+          \ )).to_equal(s:diff({
+          \   'start': [1, 3],
+          \   'end': [1, 6],
+          \   'text': '',
+          \   'rangeLength': 3
+          \ }))
+        End
+
+      End
+
+      Describe last line
+
+        It should compute diff when char removed on first of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'fooghi'],
+          \   ['abc', 'def', 'ghi'],
+          \ )).to_equal(s:diff({
+          \   'start': [2, 0],
+          \   'end': [2, 3],
+          \   'text': '',
+          \   'rangeLength': 3
+          \ }))
+        End
+
+        It should compute diff when char removed on middle of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'ghfooi'],
+          \   ['abc', 'def', 'ghi'],
+          \ )).to_equal(s:diff({
+          \   'start': [2, 2],
+          \   'end': [2, 5],
+          \   'text': '',
+          \   'rangeLength': 3
+          \ }))
+        End
+
+        It should compute diff when char removed on last of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'ghifoo'],
+          \   ['abc', 'def', 'ghi'],
+          \ )).to_equal(s:diff({
+          \   'start': [2, 3],
+          \   'end': [2, 6],
+          \   'text': '',
+          \   'rangeLength': 3
+          \ }))
+        End
+
+      End
+
+    End
+
+    Describe char replaced
+
+      Describe first line
+
+        It should compute diff when char replaced on first of first line
+          call s:expect(s:Diff.compute(
+          \   ['abc'],
+          \   ['__c'],
+          \ )).to_equal(s:diff({
+          \   'start': [0, 0],
+          \   'end': [0, 2],
+          \   'text': '__',
+          \   'rangeLength': 2
+          \ }))
+        End
+
+        It should compute diff when char replaced on middle of first line
+          call s:expect(s:Diff.compute(
+          \   ['abc'],
+          \   ['a_c'],
+          \ )).to_equal(s:diff({
+          \   'start': [0, 1],
+          \   'end': [0, 2],
+          \   'text': '_',
+          \   'rangeLength': 1
+          \ }))
+        End
+
+        It should compute diff when char replaced on last of first line
+          call s:expect(s:Diff.compute(
+          \   ['abc'],
+          \   ['a__'],
+          \ )).to_equal(s:diff({
+          \   'start': [0, 1],
+          \   'end': [0, 3],
+          \   'text': '__',
+          \   'rangeLength': 2
+          \ }))
+        End
+
+      End
+
+      Describe middle line
+
+        It should compute diff when char replaced on first of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'ghi'],
+          \   ['abc', '__f', 'ghi'],
+          \ )).to_equal(s:diff({
+          \   'start': [1, 0],
+          \   'end': [1, 2],
+          \   'text': '__',
+          \   'rangeLength': 2
+          \ }))
+        End
+
+        It should compute diff when char replaced on middle of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'ghi'],
+          \   ['abc', 'd_f', 'ghi'],
+          \ )).to_equal(s:diff({
+          \   'start': [1, 1],
+          \   'end': [1, 2],
+          \   'text': '_',
+          \   'rangeLength': 1
+          \ }))
+        End
+
+        It should compute diff when char replaced on last of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'ghi'],
+          \   ['abc', 'd__', 'ghi'],
+          \ )).to_equal(s:diff({
+          \   'start': [1, 1],
+          \   'end': [1, 3],
+          \   'text': '__',
+          \   'rangeLength': 2
+          \ }))
+        End
+
+      End
+
+      Describe last line
+
+        It should compute diff when char replaced on first of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'ghi'],
+          \   ['abc', 'def', '__i'],
+          \ )).to_equal(s:diff({
+          \   'start': [2, 0],
+          \   'end': [2, 2],
+          \   'text': '__',
+          \   'rangeLength': 2
+          \ }))
+        End
+
+        It should compute diff when char replaced on middle of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'ghi'],
+          \   ['abc', 'def', 'g_i'],
+          \ )).to_equal(s:diff({
+          \   'start': [2, 1],
+          \   'end': [2, 2],
+          \   'text': '_',
+          \   'rangeLength': 1
+          \ }))
+        End
+
+        It should compute diff when char replaced on last of middle line
+          call s:expect(s:Diff.compute(
+          \   ['abc', 'def', 'ghi'],
+          \   ['abc', 'def', 'g__'],
+          \ )).to_equal(s:diff({
+          \   'start': [2, 1],
+          \   'end': [2, 3],
+          \   'text': '__',
+          \   'rangeLength': 2
+          \ }))
+        End
+
+      End
+
+    End
 
   End
 

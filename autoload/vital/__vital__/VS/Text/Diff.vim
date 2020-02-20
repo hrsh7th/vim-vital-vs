@@ -29,8 +29,8 @@ function! s:compute(old, new) abort
 
   let l:old_lines = l:old[l:first_line : l:last_line]
   let l:new_lines = l:new[l:first_line : l:last_line]
-  let l:old_text = join(l:old_lines, "\n")
-  let l:new_text = join(l:new_lines, "\n")
+  let l:old_text = join(l:old_lines, "\n") . "\n"
+  let l:new_text = join(l:new_lines, "\n") . "\n"
   let l:old_text_len = strchars(l:old_text)
   let l:new_text_len = strchars(l:new_text)
   let l:min_text_len = min([l:old_text_len, l:new_text_len])
@@ -43,7 +43,7 @@ function! s:compute(old, new) abort
     let l:first_char += 1
   endwhile
 
-  let l:last_char = 0 " exclusive
+  let l:last_char = -1
   while l:last_char > -l:min_text_len + l:first_char
     if strgetchar(l:old_text, (l:old_text_len + l:last_char) - 1) != strgetchar(l:new_text, (l:new_text_len + l:last_char) - 1)
       break
@@ -61,7 +61,7 @@ function! s:compute(old, new) abort
   let l:diff.range.start.character = l:first_char
   let l:diff.range.end = {}
   let l:diff.range.end.line = l:old_len + l:last_line
-  let l:diff.range.end.character = strchars(l:old_lines[-1]) + l:last_char
+  let l:diff.range.end.character = strchars(l:old_lines[-1]) + l:last_char + 1
   let l:diff.text = l:text
   let l:diff.rangeLength = l:range_length
   return l:diff
