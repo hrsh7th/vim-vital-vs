@@ -55,7 +55,7 @@ function! s:_apply(bufnr, text_edit, cursor_pos) abort
 
   " fix cursor pos
   let l:cursor_offset = 0
-  if a:text_edit.range.end.line <= a:cursor_pos[0]
+  if a:text_edit.range.end.line + 1 < a:cursor_pos[0]
     let l:cursor_offset = l:new_lines_len - (a:text_edit.range.end.line - a:text_edit.range.start.line) - 1
     let a:cursor_pos[0] += l:cursor_offset
   endif
