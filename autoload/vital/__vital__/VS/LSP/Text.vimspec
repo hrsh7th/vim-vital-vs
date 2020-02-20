@@ -23,22 +23,22 @@ Describe vital#__vital__#VS#LSP#Text
 
   End
 
-  Describe #split_eol
+  Describe #split_by_eol
 
     It should split text by \r\n
-      call s:expect(s:Text.split_eol("あいうえお\r\nかきくけこ")).to_equal(['あいうえお', 'かきくけこ'])
+      call s:expect(s:Text.split_by_eol("あいうえお\r\nかきくけこ")).to_equal(['あいうえお', 'かきくけこ'])
     End
 
     It should split text by \r
-      call s:expect(s:Text.split_eol("あいうえお\rかきくけこ")).to_equal(['あいうえお', 'かきくけこ'])
+      call s:expect(s:Text.split_by_eol("あいうえお\rかきくけこ")).to_equal(['あいうえお', 'かきくけこ'])
     End
 
     It should split text by \r\n\r
-      call s:expect(s:Text.split_eol("あいうえお\r\n\rかきくけこ")).to_equal(['あいうえお', '', 'かきくけこ'])
+      call s:expect(s:Text.split_by_eol("あいうえお\r\n\rかきくけこ")).to_equal(['あいうえお', '', 'かきくけこ'])
     End
 
     It should split text by \r\n\n\r\r\n
-      call s:expect(s:Text.split_eol("あいうえお\r\n\n\r\r\nかきくけこ")).to_equal(['あいうえお', '', '', '', 'かきくけこ'])
+      call s:expect(s:Text.split_by_eol("あいうえお\r\n\n\r\r\nかきくけこ")).to_equal(['あいうえお', '', '', '', 'かきくけこ'])
     End
 
   End

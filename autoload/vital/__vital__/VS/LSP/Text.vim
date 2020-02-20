@@ -9,9 +9,9 @@ function! s:normalize_eol(text) abort
 endfunction
 
 "
-" split_eol
+" split_by_eol
 "
-function! s:split_eol(text) abort
+function! s:split_by_eol(text) abort
   return split(s:normalize_eol(a:text), "\n", v:true)
 endfunction
 
