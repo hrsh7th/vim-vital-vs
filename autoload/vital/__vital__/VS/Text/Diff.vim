@@ -43,7 +43,7 @@ function! s:compute(old, new) abort
     let l:first_char += 1
   endwhile
 
-  let l:last_char = -1
+  let l:last_char = 0
   while l:last_char > -l:min_text_len + l:first_char
     if strgetchar(l:old_text, (l:old_text_len + l:last_char) - 1) != strgetchar(l:new_text, (l:new_text_len + l:last_char) - 1)
       break
