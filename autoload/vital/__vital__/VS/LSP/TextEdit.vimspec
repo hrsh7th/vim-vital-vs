@@ -37,6 +37,34 @@ Describe vital#__vital__#VS#LSP#TextEdit
         call s:expect(l:topline).to_equal(line('w0') - 1)
       End
 
+      It should not fix when text_edit position is same line and character after cursor col
+        call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 3])
+        let l:topline = line('w0')
+        call s:TextEdit.apply('%', [{
+        \   'range': {
+        \     'start': s:Position.vim_to_lsp('%', [2, 0]),
+        \     'end': s:Position.vim_to_lsp('%', [2, 4]),
+        \   },
+        \   'newText': "foo"
+        \ }])
+        call s:expect(getpos('.')[1 : 2]).to_equal([2, 3])
+        call s:expect(l:topline).to_equal(line('w0'))
+      End
+
+      It should fix when text_edit position is same line and character before cursor col
+        call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 5])
+        let l:topline = line('w0')
+        call s:TextEdit.apply('%', [{
+        \   'range': {
+        \     'start': s:Position.vim_to_lsp('%', [2, 0]),
+        \     'end': s:Position.vim_to_lsp('%', [2, 2]),
+        \   },
+        \   'newText': "foo"
+        \ }])
+        call s:expect(getpos('.')[1 : 2]).to_equal([2, 7])
+        call s:expect(l:topline).to_equal(line('w0'))
+      End
+
     End
 
     Describe unloaded buffer
