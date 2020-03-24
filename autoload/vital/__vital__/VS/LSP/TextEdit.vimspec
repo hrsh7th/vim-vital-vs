@@ -8,7 +8,7 @@ Describe vital#__vital__#VS#LSP#TextEdit
 
     Describe cursor
 
-      It should not fix when text_edit position is same of line to cursor
+      It should fix when text_edit position is same of line to cursor
         call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 5])
 
         let l:topline = line('w0')
@@ -19,8 +19,8 @@ Describe vital#__vital__#VS#LSP#TextEdit
         \   },
         \   'newText': "foo\n"
         \ }])
-        call s:expect(getpos('.')[1 : 2]).to_equal([2, 5])
-        call s:expect(l:topline).to_equal(line('w0'))
+        call s:expect(getpos('.')[1 : 2]).to_equal([3, 1])
+        call s:expect(l:topline).to_equal(line('w0') - 1)
       End
 
       It should fix when text_edit position is above of line to cursor
