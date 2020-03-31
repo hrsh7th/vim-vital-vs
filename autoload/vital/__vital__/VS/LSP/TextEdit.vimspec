@@ -11,7 +11,6 @@ Describe vital#__vital__#VS#LSP#TextEdit
       It should fix when text_edit position is same of line to cursor
         call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 5])
 
-        let l:topline = line('w0')
         call s:TextEdit.apply('%', [{
         \   'range': {
         \     'start': s:Position.vim_to_lsp('%', [2, 5]),
@@ -20,12 +19,10 @@ Describe vital#__vital__#VS#LSP#TextEdit
         \   'newText': "foo\n"
         \ }])
         call s:expect(getpos('.')[1 : 2]).to_equal([3, 1])
-        call s:expect(l:topline).to_equal(line('w0') - 1)
       End
 
       It should fix when text_edit position is above of line to cursor
         call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 5])
-        let l:topline = line('w0')
         call s:TextEdit.apply('%', [{
         \   'range': {
         \     'start': s:Position.vim_to_lsp('%', [1, 5]),
@@ -34,12 +31,10 @@ Describe vital#__vital__#VS#LSP#TextEdit
         \   'newText': "foo\n"
         \ }])
         call s:expect(getpos('.')[1 : 2]).to_equal([3, 5])
-        call s:expect(l:topline).to_equal(line('w0') - 1)
       End
 
       It should not fix when text_edit position is same line and character after cursor col
         call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 3])
-        let l:topline = line('w0')
         call s:TextEdit.apply('%', [{
         \   'range': {
         \     'start': s:Position.vim_to_lsp('%', [2, 0]),
@@ -48,12 +43,10 @@ Describe vital#__vital__#VS#LSP#TextEdit
         \   'newText': "foo"
         \ }])
         call s:expect(getpos('.')[1 : 2]).to_equal([2, 3])
-        call s:expect(l:topline).to_equal(line('w0'))
       End
 
       It should fix when text_edit position is same line and character before cursor col
         call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 5])
-        let l:topline = line('w0')
         call s:TextEdit.apply('%', [{
         \   'range': {
         \     'start': s:Position.vim_to_lsp('%', [2, 0]),
@@ -62,7 +55,6 @@ Describe vital#__vital__#VS#LSP#TextEdit
         \   'newText': "foo"
         \ }])
         call s:expect(getpos('.')[1 : 2]).to_equal([2, 7])
-        call s:expect(l:topline).to_equal(line('w0'))
       End
 
     End
