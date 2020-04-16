@@ -4,296 +4,302 @@ let s:Position = vital#vital#import('VS.LSP.Position')
 
 Describe vital#__vital__#VS#LSP#TextEdit
 
-  Describe #apply
+  for l:fixeol in [v:false, v:true]
 
-    Describe cursor
+    call s:TextEdit.fixeol(l:fixeol)
 
-      It should fix when text_edit position is same of line to cursor
-        call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 5])
+    Describe #apply
 
-        call s:TextEdit.apply('%', [{
-        \   'range': {
-        \     'start': s:Position.vim_to_lsp('%', [2, 5]),
-        \     'end': s:Position.vim_to_lsp('%', [2, 5]),
-        \   },
-        \   'newText': "foo\n"
-        \ }])
-        call s:expect(getpos('.')[1 : 2]).to_equal([3, 1])
+      Describe cursor
+
+        It should fix when text_edit position is same of line to cursor
+          call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 5])
+
+          call s:TextEdit.apply('%', [{
+          \   'range': {
+          \     'start': s:Position.vim_to_lsp('%', [2, 5]),
+          \     'end': s:Position.vim_to_lsp('%', [2, 5]),
+          \   },
+          \   'newText': "foo\n"
+          \ }])
+          call s:expect(getpos('.')[1 : 2]).to_equal([3, 1])
+        End
+
+        It should fix when text_edit position is above of line to cursor
+          call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 5])
+          call s:TextEdit.apply('%', [{
+          \   'range': {
+          \     'start': s:Position.vim_to_lsp('%', [1, 5]),
+          \     'end': s:Position.vim_to_lsp('%', [1, 5]),
+          \   },
+          \   'newText': "foo\n"
+          \ }])
+          call s:expect(getpos('.')[1 : 2]).to_equal([3, 5])
+        End
+
+        It should not fix when text_edit position is same line and character after cursor col
+          call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 3])
+          call s:TextEdit.apply('%', [{
+          \   'range': {
+          \     'start': s:Position.vim_to_lsp('%', [2, 0]),
+          \     'end': s:Position.vim_to_lsp('%', [2, 4]),
+          \   },
+          \   'newText': "foo"
+          \ }])
+          call s:expect(getpos('.')[1 : 2]).to_equal([2, 3])
+        End
+
+        It should fix when text_edit position is same line and character before cursor col
+          call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 5])
+          call s:TextEdit.apply('%', [{
+          \   'range': {
+          \     'start': s:Position.vim_to_lsp('%', [2, 0]),
+          \     'end': s:Position.vim_to_lsp('%', [2, 2]),
+          \   },
+          \   'newText': "foo"
+          \ }])
+          call s:expect(getpos('.')[1 : 2]).to_equal([2, 7])
+        End
+
       End
 
-      It should fix when text_edit position is above of line to cursor
-        call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 5])
-        call s:TextEdit.apply('%', [{
-        \   'range': {
-        \     'start': s:Position.vim_to_lsp('%', [1, 5]),
-        \     'end': s:Position.vim_to_lsp('%', [1, 5]),
-        \   },
-        \   'newText': "foo\n"
-        \ }])
-        call s:expect(getpos('.')[1 : 2]).to_equal([3, 5])
+      Describe unloaded buffer
+
+        It should apply to unloaded buffer
+          let l:target_path = globpath(&runtimepath, '/autoload/vital/__vital__/VS/LSP/TextEdit.vimspec')
+          call s:TextEdit.apply(l:target_path, [{
+          \   'range': {
+          \     'start': {
+          \       'line': 0,
+          \       'character': 0,
+          \     },
+          \     'end': {
+          \       'line': 1,
+          \       'character': 0,
+          \     }
+          \   },
+          \   'newText': "aiueo\n"
+          \ }])
+
+          call s:expect(getbufline(l:target_path, 1)).to_equal([
+          \   'aiueo'
+          \ ])
+        End
+
       End
 
-      It should not fix when text_edit position is same line and character after cursor col
-        call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 3])
-        call s:TextEdit.apply('%', [{
-        \   'range': {
-        \     'start': s:Position.vim_to_lsp('%', [2, 0]),
-        \     'end': s:Position.vim_to_lsp('%', [2, 4]),
-        \   },
-        \   'newText': "foo"
-        \ }])
-        call s:expect(getpos('.')[1 : 2]).to_equal([2, 3])
-      End
+      " @see https://github.com/microsoft/vscode-languageserver-node/blob/master/textDocument/src/test/edits.test.ts
+      Describe vscode
 
-      It should fix when text_edit position is same line and character before cursor col
-        call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 5])
-        call s:TextEdit.apply('%', [{
-        \   'range': {
-        \     'start': s:Position.vim_to_lsp('%', [2, 0]),
-        \     'end': s:Position.vim_to_lsp('%', [2, 2]),
-        \   },
-        \   'newText': "foo"
-        \ }])
-        call s:expect(getpos('.')[1 : 2]).to_equal([2, 7])
-      End
+        It should edit inserts 1
+          call s:apply("012345678901234567890123456789", [{
+          \   'start': [0, 0],
+          \   'end': [0, 0],
+          \   'text': 'Hello'
+          \ }], "Hello012345678901234567890123456789")
+        End
 
-    End
+        It should edit inserts 2
+          call s:apply("012345678901234567890123456789", [{
+          \   'start': [0, 1],
+          \   'end': [0, 1],
+          \   'text': 'Hello'
+          \ }], "0Hello12345678901234567890123456789")
+        End
 
-    Describe unloaded buffer
+        It should edit inserts 3
+          call s:apply("012345678901234567890123456789", [{
+          \   'start': [0, 1],
+          \   'end': [0, 1],
+          \   'text': 'Hello'
+          \ },{
+          \   'start': [0, 1],
+          \   'end': [0, 1],
+          \   'text': 'World'
+          \ }], "0HelloWorld12345678901234567890123456789")
+        End
 
-      It should apply to unloaded buffer
-        let l:target_path = globpath(&runtimepath, '/autoload/vital/__vital__/VS/LSP/TextEdit.vimspec')
-        call s:TextEdit.apply(l:target_path, [{
-        \   'range': {
-        \     'start': {
-        \       'line': 0,
-        \       'character': 0,
-        \     },
-        \     'end': {
-        \       'line': 1,
-        \       'character': 0,
-        \     }
-        \   },
-        \   'newText': "aiueo\n"
-        \ }])
+        It should edit inserts 4
+          call s:apply("012345678901234567890123456789", [{
+          \   'start': [0, 2],
+          \   'end': [0, 2],
+          \   'text': 'One'
+          \ },{
+          \   'start': [0, 1],
+          \   'end': [0, 1],
+          \   'text': 'Hello'
+          \ },{
+          \   'start': [0, 1],
+          \   'end': [0, 1],
+          \   'text': 'World'
+          \ },{
+          \   'start': [0, 2],
+          \   'end': [0, 2],
+          \   'text': 'Two'
+          \ },{
+          \   'start': [0, 2],
+          \   'end': [0, 2],
+          \   'text': 'Three'
+          \ }], "0HelloWorld1OneTwoThree2345678901234567890123456789")
+        End
 
-        call s:expect(getbufline(l:target_path, 1)).to_equal([
-        \   'aiueo'
-        \ ])
-      End
+        It should edit replaces 1
+          call s:apply("012345678901234567890123456789", [{
+          \   'start': [0, 3],
+          \   'end': [0, 6],
+          \   'text': 'Hello'
+          \ }], "012Hello678901234567890123456789")
+        End
 
-    End
-
-    " @see https://github.com/microsoft/vscode-languageserver-node/blob/master/textDocument/src/test/edits.test.ts
-    Describe vscode
-
-      It should edit inserts 1
-        call s:apply("012345678901234567890123456789", [{
-        \   'start': [0, 0],
-        \   'end': [0, 0],
-        \   'text': 'Hello'
-        \ }], "Hello012345678901234567890123456789")
-      End
-
-      It should edit inserts 2
-        call s:apply("012345678901234567890123456789", [{
-        \   'start': [0, 1],
-        \   'end': [0, 1],
-        \   'text': 'Hello'
-        \ }], "0Hello12345678901234567890123456789")
-      End
-
-      It should edit inserts 3
-        call s:apply("012345678901234567890123456789", [{
-        \   'start': [0, 1],
-        \   'end': [0, 1],
-        \   'text': 'Hello'
-        \ },{
-        \   'start': [0, 1],
-        \   'end': [0, 1],
-        \   'text': 'World'
-        \ }], "0HelloWorld12345678901234567890123456789")
-      End
-
-      It should edit inserts 4
-        call s:apply("012345678901234567890123456789", [{
-        \   'start': [0, 2],
-        \   'end': [0, 2],
-        \   'text': 'One'
-        \ },{
-        \   'start': [0, 1],
-        \   'end': [0, 1],
-        \   'text': 'Hello'
-        \ },{
-        \   'start': [0, 1],
-        \   'end': [0, 1],
-        \   'text': 'World'
-        \ },{
-        \   'start': [0, 2],
-        \   'end': [0, 2],
-        \   'text': 'Two'
-        \ },{
-        \   'start': [0, 2],
-        \   'end': [0, 2],
-        \   'text': 'Three'
-        \ }], "0HelloWorld1OneTwoThree2345678901234567890123456789")
-      End
-
-      It should edit replaces 1
-        call s:apply("012345678901234567890123456789", [{
-        \   'start': [0, 3],
-        \   'end': [0, 6],
-        \   'text': 'Hello'
-        \ }], "012Hello678901234567890123456789")
-      End
-
-      It should edit replaces 2
-        call s:apply("012345678901234567890123456789", [{
-        \   'start': [0, 3],
-        \   'end': [0, 6],
-        \   'text': 'Hello'
-        \ }, {
-        \   'start': [0, 6],
-        \   'end': [0, 9],
-        \   'text': 'World'
-        \ }], "012HelloWorld901234567890123456789")
-      End
-
-      It should edit replaces 3
-        call s:apply("012345678901234567890123456789", [{
-        \   'start': [0, 3],
-        \   'end': [0, 6],
-        \   'text': 'Hello'
-        \ }, {
-        \   'start': [0, 6],
-        \   'end': [0, 6],
-        \   'text': 'World'
-        \ }], "012HelloWorld678901234567890123456789")
-      End
-
-      It should edit replaces 4
-        call s:apply("012345678901234567890123456789", [{
-        \   'start': [0, 6],
-        \   'end': [0, 6],
-        \   'text': 'World'
-        \ }, {
-        \   'start': [0, 3],
-        \   'end': [0, 6],
-        \   'text': 'Hello'
-        \ }], "012HelloWorld678901234567890123456789")
-      End
-
-      It should edit replaces 5
-        call s:apply("012345678901234567890123456789", [{
-        \   'start': [0, 3],
-        \   'end': [0, 3],
-        \   'text': 'World'
-        \ }, {
-        \   'start': [0, 3],
-        \   'end': [0, 6],
-        \   'text': 'Hello'
-        \ }], "012WorldHello678901234567890123456789")
-      End
-
-      It should edit multiline 1
-        call s:apply("0\n1\n2\n3\n4", [{
-        \   'start': [2, 0],
-        \   'end': [3, 0],
-        \   'text': 'Hello'
-        \ }, {
-        \   'start': [1, 1],
-        \   'end': [1, 1],
-        \   'text': 'World'
-        \ }], "0\n1World\nHello3\n4")
-      End
-
-      It should throw overlap error 1
-        let s:catch = v:false
-        try
+        It should edit replaces 2
           call s:apply("012345678901234567890123456789", [{
           \   'start': [0, 3],
           \   'end': [0, 6],
           \   'text': 'Hello'
           \ }, {
+          \   'start': [0, 6],
+          \   'end': [0, 9],
+          \   'text': 'World'
+          \ }], "012HelloWorld901234567890123456789")
+        End
+
+        It should edit replaces 3
+          call s:apply("012345678901234567890123456789", [{
+          \   'start': [0, 3],
+          \   'end': [0, 6],
+          \   'text': 'Hello'
+          \ }, {
+          \   'start': [0, 6],
+          \   'end': [0, 6],
+          \   'text': 'World'
+          \ }], "012HelloWorld678901234567890123456789")
+        End
+
+        It should edit replaces 4
+          call s:apply("012345678901234567890123456789", [{
+          \   'start': [0, 6],
+          \   'end': [0, 6],
+          \   'text': 'World'
+          \ }, {
+          \   'start': [0, 3],
+          \   'end': [0, 6],
+          \   'text': 'Hello'
+          \ }], "012HelloWorld678901234567890123456789")
+        End
+
+        It should edit replaces 5
+          call s:apply("012345678901234567890123456789", [{
           \   'start': [0, 3],
           \   'end': [0, 3],
           \   'text': 'World'
-          \ }])
-        catch /.*/
-          let s:catch = v:true
-        endtry
-        call s:expect(s:catch).to_equal(v:true)
-      End
-
-      It should throw overlap error 2
-        let s:catch = v:false
-        try
-          call s:apply("012345678901234567890123456789", [{
+          \ }, {
           \   'start': [0, 3],
           \   'end': [0, 6],
           \   'text': 'Hello'
+          \ }], "012WorldHello678901234567890123456789")
+        End
+
+        It should edit multiline 1
+          call s:apply("0\n1\n2\n3\n4", [{
+          \   'start': [2, 0],
+          \   'end': [3, 0],
+          \   'text': 'Hello'
           \ }, {
-          \   'start': [0, 3],
-          \   'end': [0, 4],
+          \   'start': [1, 1],
+          \   'end': [1, 1],
           \   'text': 'World'
-          \ }])
-        catch /.*/
-          let s:catch = v:true
-        endtry
-        call s:expect(s:catch).to_equal(v:true)
-      End
+          \ }], "0\n1World\nHello3\n4")
+        End
 
-      It should delete multiline 1
-        call s:apply("abcdefg\nhijklmn\nopqrstu\nvwxyg", [{
-        \   'start': [0, 0],
-        \   'end': [1, 0],
-        \   'text': ''
-        \ }, {
-        \   'start': [1, 0],
-        \   'end': [2, 0],
-        \   'text': ''
-        \ }], "opqrstu\nvwxyg")
-      End
+        It should throw overlap error 1
+          let s:catch = v:false
+          try
+            call s:apply("012345678901234567890123456789", [{
+            \   'start': [0, 3],
+            \   'end': [0, 6],
+            \   'text': 'Hello'
+            \ }, {
+            \   'start': [0, 3],
+            \   'end': [0, 3],
+            \   'text': 'World'
+            \ }])
+          catch /.*/
+            let s:catch = v:true
+          endtry
+          call s:expect(s:catch).to_equal(v:true)
+        End
 
-      It should delete multiline 2
-        call s:apply("abcdefg\nhijklmn\nopqrstu\nvwxyg", [{
-        \   'start': [0, 0],
-        \   'end': [1, 4],
-        \   'text': ''
-        \ }, {
-        \   'start': [1, 4],
-        \   'end': [2, 4],
-        \   'text': ''
-        \ }], "stu\nvwxyg")
-      End
+        It should throw overlap error 2
+          let s:catch = v:false
+          try
+            call s:apply("012345678901234567890123456789", [{
+            \   'start': [0, 3],
+            \   'end': [0, 6],
+            \   'text': 'Hello'
+            \ }, {
+            \   'start': [0, 3],
+            \   'end': [0, 4],
+            \   'text': 'World'
+            \ }])
+          catch /.*/
+            let s:catch = v:true
+          endtry
+          call s:expect(s:catch).to_equal(v:true)
+        End
 
-      It should add/delete multiline 1
-        call s:apply("abcdefg\nhijklmn\nopqrstu\nvwxyg", [{
-        \   'start': [0, 0],
-        \   'end': [1, 0],
-        \   'text': "12345\n"
-        \ }, {
-        \   'start': [1, 0],
-        \   'end': [2, 0],
-        \   'text': "67890\n"
-        \ }], "12345\n67890\nopqrstu\nvwxyg")
-      End
+        It should delete multiline 1
+          call s:apply("abcdefg\nhijklmn\nopqrstu\nvwxyg", [{
+          \   'start': [0, 0],
+          \   'end': [1, 0],
+          \   'text': ''
+          \ }, {
+          \   'start': [1, 0],
+          \   'end': [2, 0],
+          \   'text': ''
+          \ }], "opqrstu\nvwxyg")
+        End
 
-      It should add/delete multiline 2
-        call s:apply("abcdefg\nhijklmn\nopqrstu\nvwxyg", [{
-        \   'start': [0, 0],
-        \   'end': [1, 4],
-        \   'text': ''
-        \ }, {
-        \   'start': [1, 4],
-        \   'end': [2, 4],
-        \   'text': ''
-        \ }], "stu\nvwxyg")
+        It should delete multiline 2
+          call s:apply("abcdefg\nhijklmn\nopqrstu\nvwxyg", [{
+          \   'start': [0, 0],
+          \   'end': [1, 4],
+          \   'text': ''
+          \ }, {
+          \   'start': [1, 4],
+          \   'end': [2, 4],
+          \   'text': ''
+          \ }], "stu\nvwxyg")
+        End
+
+        It should add/delete multiline 1
+          call s:apply("abcdefg\nhijklmn\nopqrstu\nvwxyg", [{
+          \   'start': [0, 0],
+          \   'end': [1, 0],
+          \   'text': "12345\n"
+          \ }, {
+          \   'start': [1, 0],
+          \   'end': [2, 0],
+          \   'text': "67890\n"
+          \ }], "12345\n67890\nopqrstu\nvwxyg")
+        End
+
+        It should add/delete multiline 2
+          call s:apply("abcdefg\nhijklmn\nopqrstu\nvwxyg", [{
+          \   'start': [0, 0],
+          \   'end': [1, 4],
+          \   'text': ''
+          \ }, {
+          \   'start': [1, 4],
+          \   'end': [2, 4],
+          \   'text': ''
+          \ }], "stu\nvwxyg")
+        End
+
       End
 
     End
 
-  End
+  endfor
 
 End
 
@@ -328,7 +334,6 @@ function! s:apply(content, text_edits, expected) abort
   \   },
   \   'newText': text_edit.text
   \ } }))
-
   call s:expect(split(a:expected, "\n", v:true)).to_equal(getline('^', '$'))
 endfunction
 
