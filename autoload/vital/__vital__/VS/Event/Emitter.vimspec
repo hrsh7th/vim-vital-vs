@@ -25,12 +25,22 @@ Describe vital#__vital__#VS#Event#Emitter
 
   Describe #off
 
-    It should remove by listener
+    It should remove by listener 1
       let s:emitter = s:Emitter.new()
       let s:Listener = { -> {} }
       call s:emitter.on('test', s:Listener)
       call s:expect(s:emitter.listener_count('test')).to_equal(1)
       call s:emitter.off('test', s:Listener)
+      call s:expect(s:emitter.listener_count('test')).to_equal(0)
+    End
+
+    It should remove by listener 2
+      let s:emitter = s:Emitter.new()
+      let s:Listener1 = { -> {} }
+      let s:Listener2 = function(s:Listener1)
+      call s:emitter.on('test', s:Listener1)
+      call s:expect(s:emitter.listener_count('test')).to_equal(1)
+      call s:emitter.off('test', s:Listener2)
       call s:expect(s:emitter.listener_count('test')).to_equal(0)
     End
 
