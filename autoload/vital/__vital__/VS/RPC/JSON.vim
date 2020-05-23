@@ -127,11 +127,12 @@ endfunction
 "
 function! s:Connection.on_message(message) abort
   if has_key(a:message, 'id')
+    " Request from server.
     if has_key(a:message, 'method')
-      " Request from server.
       call self.emit('request', a:message)
+
+    " Response from server.
     else
-      " Response from server.
       if has_key(self.request_map, a:message.id)
         let l:request = remove(self.request_map, a:message.id)
         if has_key(a:message, 'error')
@@ -141,6 +142,8 @@ function! s:Connection.on_message(message) abort
         endif
       endif
     endif
+
+  " Notify from server.
   elseif has_key(a:message, 'method')
     call self.emitter.emit('notify', a:message)
   endif
