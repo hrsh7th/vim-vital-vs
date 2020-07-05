@@ -41,7 +41,7 @@ Describe vital#__vital__#VS#LSP#TextEdit
           call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 3])
           call s:TextEdit.apply('%', [{
           \   'range': {
-          \     'start': s:Position.vim_to_lsp('%', [2, 0]),
+          \     'start': s:Position.vim_to_lsp('%', [2, 1]),
           \     'end': s:Position.vim_to_lsp('%', [2, 4]),
           \   },
           \   'newText': "foo"
@@ -53,12 +53,24 @@ Describe vital#__vital__#VS#LSP#TextEdit
           call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 5])
           call s:TextEdit.apply('%', [{
           \   'range': {
-          \     'start': s:Position.vim_to_lsp('%', [2, 0]),
+          \     'start': s:Position.vim_to_lsp('%', [2, 1]),
           \     'end': s:Position.vim_to_lsp('%', [2, 2]),
           \   },
           \   'newText': "foo"
           \ }])
           call s:expect(getpos('.')[1 : 2]).to_equal([2, 7])
+        End
+
+        It should fix when text_edit end col is over of cursor col of line and above of line
+          call s:put("abcedfg\nhijklmn\nopqrstu\n", [2, 5])
+          call s:TextEdit.apply('%', [{
+          \   'range': {
+          \     'start': s:Position.vim_to_lsp('%', [1, 1]),
+          \     'end': s:Position.vim_to_lsp('%', [1, 6]),
+          \   },
+          \   'newText': "foo\nakasatana"
+          \ }])
+          call s:expect(getpos('.')[1 : 2]).to_equal([3, 5])
         End
 
       End
