@@ -1,4 +1,11 @@
 "
+" is_lua_enabled
+"
+function! s:is_lua_enabled(is_lua_enabled) abort
+  let s:is_lua_enabled = a:is_lua_enabled
+endfunction
+
+"
 " compute
 "
 function! s:compute(old, new) abort
@@ -59,21 +66,29 @@ function! s:compute(old, new) abort
     \ }
   endif
 
-  let l:first_line = 0
-  while l:first_line < l:min_len - 1
-    if l:old[l:first_line] !=# l:new[l:first_line]
-      break
-    endif
-    let l:first_line += 1
-  endwhile
+  if s:is_lua_enabled
+    let l:first_line = luaeval('vital_vs_text_diff_search_first_line(_A[1], _A[2])', [l:old, l:new])
+  else
+    let l:first_line = 0
+    while l:first_line < l:min_len - 1
+      if l:old[l:first_line] !=# l:new[l:first_line]
+        break
+      endif
+      let l:first_line += 1
+    endwhile
+  endif
 
-  let l:last_line = -1
-  while l:last_line > -l:min_len + l:first_line
-    if l:old[l:last_line] !=# l:new[l:last_line]
-      break
-    endif
-    let l:last_line -= 1
-  endwhile
+  if s:is_lua_enabled
+    let l:last_line = luaeval('vital_vs_text_diff_search_last_line(_A[1], _A[2], _A[3])', [l:old, l:new, l:first_line])
+  else
+    let l:last_line = -1
+    while l:last_line > -l:min_len + l:first_line
+      if l:old[l:last_line] !=# l:new[l:last_line]
+        break
+      endif
+      let l:last_line -= 1
+    endwhile
+  endif
 
   let l:old_lines = l:old[l:first_line : l:last_line]
   let l:new_lines = l:new[l:first_line : l:last_line]
@@ -115,3 +130,33 @@ function! s:compute(old, new) abort
   \ }
 endfunction
 
+let s:is_lua_enabled = v:false
+if has('nvim')
+let s:is_lua_enabled = v:true
+lua <<EOF
+  function vital_vs_text_diff_search_first_line(old, new)
+    local min_len = math.min(#old, #new)
+    local first_line = 0
+    while first_line < min_len - 1 do
+      if old[first_line + 1] ~= new[first_line + 1] then
+        return first_line
+      end
+      first_line = first_line + 1
+    end
+    return min_len - 1
+  end
+  function vital_vs_text_diff_search_last_line(old, new, first_line)
+    local old_len = #old
+    local new_len = #new
+    local min_len = math.min(#old, #new)
+    local last_line = -1
+    while last_line > -min_len + first_line do
+      if old[(old_len + last_line) + 1] ~= new[(new_len + last_line) + 1] then
+        return last_line
+      end
+      last_line = last_line - 1
+    end
+    return -min_len + first_line
+  end
+EOF
+endif

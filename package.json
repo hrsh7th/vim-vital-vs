@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "themis ."
+    "test": "npm run test:normal && npm run test:with-lua",
+    "test:normal": "themis .",
+    "test:with-lua": "WITH_LUA=1 themis ."
   },
   "repository": {
     "type": "git",

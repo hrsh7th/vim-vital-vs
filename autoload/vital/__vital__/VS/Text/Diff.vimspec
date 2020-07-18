@@ -1,6 +1,8 @@
 let s:expect = themis#helper('expect')
 let s:Diff = vital#vital#import('VS.Text.Diff')
 
+call s:Diff.is_lua_enabled(get(environ(), 'WITH_LUA', v:null) isnot v:null)
+
 Describe vital#__vital__#VS#Text#Diff
 
   Describe #compute
