@@ -25,7 +25,7 @@ Describe vital#__vital__#VS#Event#Emitter
 
   Describe #off
 
-    It should remove by listener 1
+    It should remove listener 1
       let s:emitter = s:Emitter.new()
       let s:Listener = { -> {} }
       call s:emitter.on('test', s:Listener)
@@ -34,13 +34,40 @@ Describe vital#__vital__#VS#Event#Emitter
       call s:expect(s:emitter.listener_count('test')).to_equal(0)
     End
 
-    It should remove by listener 2
+    It should remove listener 2
       let s:emitter = s:Emitter.new()
       let s:Listener1 = { -> {} }
       let s:Listener2 = function(s:Listener1)
       call s:emitter.on('test', s:Listener1)
       call s:expect(s:emitter.listener_count('test')).to_equal(1)
       call s:emitter.off('test', s:Listener2)
+      call s:expect(s:emitter.listener_count('test')).to_equal(0)
+    End
+
+    It should remove listener 3
+      let s:emitter = s:Emitter.new()
+
+      let l:object1 = {}
+      function! l:object1.method1()
+      endfunction
+      function! l:object1.method2()
+      endfunction
+
+      let l:object2 = {}
+      function! l:object2.method1()
+      endfunction
+      function! l:object2.method2()
+      endfunction
+
+      call s:emitter.on('test', function(l:object1.method1, [], l:object1))
+      call s:expect(s:emitter.listener_count('test')).to_equal(1)
+      call s:emitter.off('test', l:object1.method2)
+      call s:expect(s:emitter.listener_count('test')).to_equal(1)
+      call s:emitter.off('test', l:object2.method1)
+      call s:expect(s:emitter.listener_count('test')).to_equal(1)
+      call s:emitter.off('test', l:object2.method2)
+      call s:expect(s:emitter.listener_count('test')).to_equal(1)
+      call s:emitter.off('test', l:object1.method1)
       call s:expect(s:emitter.listener_count('test')).to_equal(0)
     End
 
