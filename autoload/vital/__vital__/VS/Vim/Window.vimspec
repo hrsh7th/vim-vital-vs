@@ -1,0 +1,25 @@
+let s:expect = themis#helper('expect')
+let s:Window = vital#vital#import('VS.Vim.Window')
+
+Describe vital#__vital__#VS#Vim#Window
+
+  Describe #do
+
+    It should restore modes
+      enew!
+      let l:winid1 = win_getid()
+      call setline(1, 'foo')
+      vnew!
+      let l:winid2 = win_getid()
+      call setline(1, 'bar')
+
+      normal! 1G1|v$
+      call s:expect(s:Window.do(l:winid1, { -> getline('1') })).to_equal('foo')
+      call s:expect(mode()).to_equal('v')
+      quit!
+    End
+
+  End
+
+End
+
