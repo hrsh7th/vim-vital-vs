@@ -55,6 +55,10 @@ endfunction
 " @param {number?} args.minheight
 "
 function! s:FloatingWindow.open(args) abort
+  if type(a:args.contents) ==# type('')
+    let a:args.contents = split(a:args.contents, "\n")
+  endif
+
   let l:size = self.get_size(a:args)
   let l:style = {
     \   'row': a:args.row,
