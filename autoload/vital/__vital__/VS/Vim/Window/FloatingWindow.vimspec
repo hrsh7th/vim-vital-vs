@@ -4,18 +4,72 @@ let s:FloatingWindow = vital#vital#import('VS.Vim.Window.FloatingWindow')
 
 Describe vital#__vital__#VS#Vim#Window#FloatingWindow
 
+  Describe #open
+
+    It should open even if taking contents as string or not
+      let l:win = s:FloatingWindow.new()
+      let l:contents = ['12345', '12345']
+      call l:win.open({
+      \   'row': 0,
+      \   'col': 0,
+      \   'filetype': 'markdown',
+      \   'contents': l:contents,
+      \ })
+      call s:expect(winwidth(win_id2win(l:win.win))).to_equal(5)
+      call s:expect(winheight(win_id2win(l:win.win))).to_equal(2)
+      call l:win.open({
+      \   'row': 0,
+      \   'col': 0,
+      \   'filetype': 'markdown',
+      \   'contents': join(l:contents, "\n"),
+      \ })
+      call s:expect(winwidth(win_id2win(l:win.win))).to_equal(5)
+      call s:expect(winheight(win_id2win(l:win.win))).to_equal(2)
+    End
+
+  End
+
+  Describe #get_size
+
+    It should return the window size even if taking contents as a string or not
+      let l:win = s:FloatingWindow.new()
+      let l:contents = ['あ', 'い', 'う', 'え', 'お']
+      call s:expect(l:win.get_size({ 'contents': l:contents })).to_equal({ 'width': 2, 'height': 5 })
+      call s:expect(l:win.get_size({ 'contents': join(l:contents, "\n") })).to_equal({ 'width': 2, 'height': 5 })
+    End
+
+  End
+
   Describe #is_visible
-    let l:win = s:FloatingWindow.new()
-    call s:expect(l:win.is_visible()).to_equal(v:false)
-    call l:win.open({
-    \   'row': 1,
-    \   'col': 1,
-    \   'filetype': 'text',
-    \   'contents': ['Hello, World!'],
-    \ })
-    call s:expect(l:win.is_visible()).to_equal(v:true)
-    call s:Window.do(l:win.win, { -> execute('close') })
-    call s:expect(l:win.is_visible()).to_equal(v:false)
+
+    It should return visibility whatever window was closed externally
+      let l:win = s:FloatingWindow.new()
+      call s:expect(l:win.is_visible()).to_equal(v:false)
+      call l:win.open({
+      \   'row': 0,
+      \   'col': 0,
+      \   'filetype': 'text',
+      \   'contents': ['Hello, World!'],
+      \ })
+      call s:expect(l:win.is_visible()).to_equal(v:true)
+      call s:Window.do(l:win.win, { -> execute('close') })
+      call s:expect(l:win.is_visible()).to_equal(v:false)
+    End
+
+    It should return visibility when window was closed
+      let l:win = s:FloatingWindow.new()
+      call s:expect(l:win.is_visible()).to_equal(v:false)
+      call l:win.open({
+      \   'row': 0,
+      \   'col': 0,
+      \   'filetype': 'text',
+      \   'contents': ['Hello, World!'],
+      \ })
+      call s:expect(l:win.is_visible()).to_equal(v:true)
+      call l:win.close()
+      call s:expect(l:win.is_visible()).to_equal(v:false)
+    End
+
   End
 
 End

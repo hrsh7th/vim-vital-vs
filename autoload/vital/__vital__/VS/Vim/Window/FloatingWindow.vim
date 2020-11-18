@@ -55,10 +55,6 @@ endfunction
 " @param {number?} args.minheight
 "
 function! s:FloatingWindow.open(args) abort
-  if type(a:args.contents) ==# type('')
-    let a:args.contents = split(a:args.contents, "\n", v:true)
-  endif
-
   let l:size = self.get_size(a:args)
   let l:style = {
     \   'row': a:args.row,
@@ -108,18 +104,19 @@ function! s:FloatingWindow.get_size(args) abort
   let l:minwidth = get(a:args, 'minwidth', -1)
   let l:maxheight = get(a:args, 'maxheight', -1)
   let l:minheight = get(a:args, 'minheight', -1)
+  let l:contents = type(a:args.contents) == type([]) ? a:args.contents : split(a:args.contents, "\n", v:true)
 
   " width
   let l:width = 0
-  for l:content in a:args.contents
+  for l:content in l:contents
     let l:width = max([l:width, strdisplaywidth(l:content)])
   endfor
   let l:width = l:minwidth == -1 ? l:width : max([l:minwidth, l:width])
   let l:width = l:maxwidth == -1 ? l:width : min([l:maxwidth, l:width])
 
   " height
-  let l:height = len(a:args.contents)
-  for l:content in a:args.contents
+  let l:height = len(l:contents)
+  for l:content in l:contents
     let l:wrap = float2nr(ceil(strdisplaywidth(l:content) / str2float('' . l:width)))
     if l:wrap > 1
       let l:height += l:wrap - 1
