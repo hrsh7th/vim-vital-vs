@@ -1,0 +1,32 @@
+let s:expect = themis#helper('expect')
+let s:LanguageId = vital#vital#import('VS.LSP.LanguageId')
+
+Describe vital#__vital__#VS#LSP#LanguageId
+
+  Describe #from_filetype
+
+    It should return fixed language_id
+      call s:expect(s:LanguageId.from_filetype('sh')).to_equal('shellscript')
+    End
+
+    It should return as-is when it can't fix
+      call s:expect(s:LanguageId.from_filetype('css')).to_equal('css')
+    End
+
+  End
+
+  Describe #to_filetype
+
+    It should return fixed filetype
+      call s:expect(s:LanguageId.to_filetype('shellscript')).to_equal('sh')
+    End
+
+    It should return as-is when it can't fix
+      call s:expect(s:LanguageId.to_filetype('css')).to_equal('css')
+    End
+
+  End
+
+End
+
+
