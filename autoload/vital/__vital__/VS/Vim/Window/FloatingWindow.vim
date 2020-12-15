@@ -34,6 +34,7 @@ function! s:FloatingWindow.new() abort
   call setbufvar(l:buf, '&buflisted', 0)
   call setbufvar(l:buf, '&modeline', 0)
   call setbufvar(l:buf, '&buftype', 'nofile')
+  call setbufvar(l:buf, '&bufhidden', 'hide')
 
   return extend(deepcopy(s:FloatingWindow), {
   \   'id': s:id,
@@ -55,6 +56,10 @@ endfunction
 " @param {number?} args.minheight
 "
 function! s:FloatingWindow.open(args) abort
+  let a:args.contents = type(a:args.contents) == type('')
+  \   ? split(a:args.contents, "\n", v:true)
+  \   : a:args.contents
+
   let l:size = self.get_size(a:args)
   let l:style = {
     \   'row': a:args.row,
@@ -68,7 +73,7 @@ function! s:FloatingWindow.open(args) abort
   else
     let self.win = s:_open(self.buf, l:style)
     call setwinvar(self.win, '&conceallevel', 2)
-    call setwinvar(self.win, '&wrap', 0)
+    call setwinvar(self.win, '&wrap', 1)
   endif
 
   call self.set_contents(a:args.filetype, a:args.contents)
@@ -101,6 +106,10 @@ endfunction
 " get_size
 "
 function! s:FloatingWindow.get_size(args) abort
+  let a:args.contents = type(a:args.contents) == type('')
+  \   ? split(a:args.contents, "\n", v:true)
+  \   : a:args.contents
+
   let l:maxwidth = get(a:args, 'maxwidth', -1)
   let l:minwidth = get(a:args, 'minwidth', -1)
   let l:maxheight = get(a:args, 'maxheight', -1)
