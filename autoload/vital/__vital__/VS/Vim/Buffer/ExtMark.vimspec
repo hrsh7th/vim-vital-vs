@@ -1,0 +1,104 @@
+let s:expect = themis#helper('expect')
+let s:ExtMark = vital#vital#import('VS.Vim.Buffer.ExtMark')
+
+let s:mark1 = {
+\   'range': {
+\     'start': {
+\       'line': 1,
+\       'character': 0,
+\     },
+\     'end': {
+\       'line': 2,
+\       'character': 0,
+\     },
+\   },
+\   'highlight': 'ErrorMsg'
+\ }
+
+let s:mark2 = {
+\   'range': {
+\     'start': {
+\       'line': 2,
+\       'character': 0,
+\     },
+\     'end': {
+\       'line': 3,
+\       'character': 0,
+\     },
+\   },
+\   'highlight': 'ErrorMsg'
+\ }
+
+Describe vital#__vital__#VS#Vim#Buffer#ExtMark
+
+  Before each
+    enew!
+    call setline(1, ['___', 'foo', 'bar', 'baz'])
+  End
+
+  After each
+    bdelete!
+  End
+
+  Describe #set
+
+    It should set extmarks
+      call s:ExtMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
+    End
+
+  End
+
+  Describe #get
+
+    It should get extmarks
+      call s:ExtMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
+      let l:marks = s:ExtMark.get(bufnr('%'), 'highlights')
+      call s:expect(l:marks).to_equal([s:mark1, s:mark2])
+    End
+
+    It should get extmarks with modification
+      call s:ExtMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
+      let l:marks = s:ExtMark.get(bufnr('%'), 'highlights')
+      call s:expect(l:marks).to_equal([s:mark1, s:mark2])
+      call append(0, ['---'])
+      let l:marks = s:ExtMark.get(bufnr('%'), 'highlights')
+
+      let l:expects = deepcopy([s:mark1, s:mark2])
+      for l:mark in l:expects
+        let l:mark.range.start.line += 1
+        let l:mark.range.end.line += 1
+      endfor
+      call s:expect(l:marks).to_equal(l:expects)
+    End
+
+  End
+
+  Describe #clear
+
+    It should clear extmarks
+      call s:ExtMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
+      let l:marks = s:ExtMark.get(bufnr('%'), 'highlights')
+      call s:expect(l:marks).to_equal([s:mark1, s:mark2])
+      call s:ExtMark.clear(bufnr('%'), 'highlights')
+      let l:marks = s:ExtMark.get(bufnr('%'), 'highlights')
+      call s:expect(l:marks).to_equal([])
+    End
+
+  End
+
+  Describe #clear
+
+    It should clear extmarks
+      call s:ExtMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
+      let l:marks = s:ExtMark.get(bufnr('%'), 'highlights')
+      call s:expect(l:marks).to_equal([s:mark1, s:mark2])
+      call s:ExtMark.clear(bufnr('%'), 'highlights')
+      let l:marks = s:ExtMark.get(bufnr('%'), 'highlights')
+      call s:expect(l:marks).to_equal([])
+    End
+
+  End
+
+End
+
+
