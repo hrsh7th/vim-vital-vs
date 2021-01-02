@@ -72,7 +72,7 @@ else
 endif
 
 function! s:_create_prop_type_name(mark) abort
-  return printf('VS.Vim.Buffer.ExtMark: %s',
+  return printf('VS.Vim.Buffer.TextMark: %s',
   \   get(a:mark, 'highlight', '')
   \ )
 endfunction
@@ -98,6 +98,10 @@ endfunction
 
 if has('nvim')
   function! s:_get(bufnr, id) abort
+    if !has_key(s:nvim_namespace, a:id)
+      return []
+    endif
+
     let l:extmarks = nvim_buf_get_extmarks(a:bufnr, s:nvim_namespace[a:id], 0, -1, { 'details': v:true })
     return map(l:extmarks, { _, mark -> {
     \   'range': {
@@ -149,6 +153,9 @@ endfunction
 
 if has('nvim')
   function! s:_clear(bufnr, id) abort
+    if !has_key(s:nvim_namespace, a:id)
+      return
+    endif
     call nvim_buf_clear_namespace(a:bufnr, s:nvim_namespace[a:id], 0, -1)
   endfunction
 else

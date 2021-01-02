@@ -1,5 +1,5 @@
 let s:expect = themis#helper('expect')
-let s:ExtMark = vital#vital#import('VS.Vim.Buffer.ExtMark')
+let s:TextMark = vital#vital#import('VS.Vim.Buffer.TextMark')
 
 let s:mark1 = {
 \   'range': {
@@ -43,7 +43,7 @@ Describe vital#__vital__#VS#Vim#Buffer#ExtMark
   Describe #set
 
     It should set extmarks
-      call s:ExtMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
+      call s:TextMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
     End
 
   End
@@ -51,17 +51,17 @@ Describe vital#__vital__#VS#Vim#Buffer#ExtMark
   Describe #get
 
     It should get extmarks
-      call s:ExtMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
-      let l:marks = s:ExtMark.get(bufnr('%'), 'highlights')
+      call s:TextMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
+      let l:marks = s:TextMark.get(bufnr('%'), 'highlights')
       call s:expect(l:marks).to_equal([s:mark1, s:mark2])
     End
 
     It should get extmarks with modification
-      call s:ExtMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
-      let l:marks = s:ExtMark.get(bufnr('%'), 'highlights')
+      call s:TextMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
+      let l:marks = s:TextMark.get(bufnr('%'), 'highlights')
       call s:expect(l:marks).to_equal([s:mark1, s:mark2])
       call append(0, ['---'])
-      let l:marks = s:ExtMark.get(bufnr('%'), 'highlights')
+      let l:marks = s:TextMark.get(bufnr('%'), 'highlights')
 
       let l:expects = deepcopy([s:mark1, s:mark2])
       for l:mark in l:expects
@@ -76,11 +76,11 @@ Describe vital#__vital__#VS#Vim#Buffer#ExtMark
   Describe #clear
 
     It should clear extmarks
-      call s:ExtMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
-      let l:marks = s:ExtMark.get(bufnr('%'), 'highlights')
+      call s:TextMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
+      let l:marks = s:TextMark.get(bufnr('%'), 'highlights')
       call s:expect(l:marks).to_equal([s:mark1, s:mark2])
-      call s:ExtMark.clear(bufnr('%'), 'highlights')
-      let l:marks = s:ExtMark.get(bufnr('%'), 'highlights')
+      call s:TextMark.clear(bufnr('%'), 'highlights')
+      let l:marks = s:TextMark.get(bufnr('%'), 'highlights')
       call s:expect(l:marks).to_equal([])
     End
 
@@ -89,11 +89,11 @@ Describe vital#__vital__#VS#Vim#Buffer#ExtMark
   Describe #clear
 
     It should clear extmarks
-      call s:ExtMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
-      let l:marks = s:ExtMark.get(bufnr('%'), 'highlights')
+      call s:TextMark.set(bufnr('%'), 'highlights', [s:mark1, s:mark2])
+      let l:marks = s:TextMark.get(bufnr('%'), 'highlights')
       call s:expect(l:marks).to_equal([s:mark1, s:mark2])
-      call s:ExtMark.clear(bufnr('%'), 'highlights')
-      let l:marks = s:ExtMark.get(bufnr('%'), 'highlights')
+      call s:TextMark.clear(bufnr('%'), 'highlights')
+      let l:marks = s:TextMark.get(bufnr('%'), 'highlights')
       call s:expect(l:marks).to_equal([])
     End
 
