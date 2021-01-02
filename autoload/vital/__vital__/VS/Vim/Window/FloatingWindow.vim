@@ -75,7 +75,9 @@ function! s:FloatingWindow.open(args) abort
     let self.win = s:_open(self.buf, l:style)
     call setwinvar(self.win, '&conceallevel', 2)
     call setwinvar(self.win, '&wrap', 1)
-    call setwinvar(self.win, '&winhighlight', get(a:args, 'winhl', ''))
+    if has('nvim')
+      call setwinvar(self.win, '&winhighlight', get(a:args, 'winhl', ''))
+    endif
   endif
 
   call self.set_contents(a:args.filetype, a:args.contents)
@@ -88,6 +90,7 @@ function! s:FloatingWindow.close() abort
   if self.is_visible()
     call s:_close(self.win)
   endif
+  let self.win = v:null
 endfunction
 
 "
@@ -101,7 +104,7 @@ endfunction
 " is_visible
 "
 function! s:FloatingWindow.is_visible() abort
-  return s:_exists(self.win)
+  return s:_exists(self.win) ? v:true : v:false
 endfunction
 
 "
@@ -217,7 +220,7 @@ if has('nvim')
   endfunction
 else
   function! s:_exists(win) abort
-    return type(a:win) == type(0) && win_id2win(a:win) != -1
+    return type(a:win) == type(0) && !empty(popup_getpos(a:win))
   endfunction
 endif
 

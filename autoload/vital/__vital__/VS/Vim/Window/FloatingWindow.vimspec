@@ -5,17 +5,19 @@ let s:FloatingWindow = vital#vital#import('VS.Vim.Window.FloatingWindow')
 Describe vital#__vital__#VS#Vim#Window#FloatingWindow
 
   Describe #is_visible
-    let l:win = s:FloatingWindow.new()
-    call s:expect(l:win.is_visible()).to_equal(v:false)
-    call l:win.open({
-    \   'row': 1,
-    \   'col': 1,
-    \   'filetype': 'text',
-    \   'contents': ['Hello, World!'],
-    \ })
-    call s:expect(l:win.is_visible()).to_equal(v:true)
-    call s:Window.do(l:win.win, { -> execute('close') })
-    call s:expect(l:win.is_visible()).to_equal(v:false)
+    It should return visibility of the floating window
+      let l:win = s:FloatingWindow.new()
+      call s:expect(l:win.is_visible()).to_equal(v:false)
+      call l:win.open({
+      \   'row': 1,
+      \   'col': 1,
+      \   'filetype': 'text',
+      \   'contents': ['Hello, World!'],
+      \ })
+      call s:expect(l:win.is_visible()).to_equal(v:true)
+      call l:win.close()
+      call s:expect(l:win.is_visible()).to_equal(v:false)
+    End
   End
 
 End
