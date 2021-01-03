@@ -71,9 +71,9 @@ function! s:_apply(bufnr, text_edit, cursor_position) abort
   " apply edit.
   call setreg('x', a:text_edit.newText, 'c')
   if l:start[0] == l:end[0] && l:start[1] == l:end[1]
-    execute printf("keepjumps noautocmd silent! normal! %sG%s|\"xP", l:start[0], l:start[1])
+    execute printf("keepjumps noautocmd silent! normal! %sG%s|i\<C-o>\"xP", l:start[0], l:start[1])
   else
-    execute printf("keepjumps noautocmd silent! normal! %sG%s|v%sG%s|h\"_d\"xP", l:start[0], l:start[1], l:end[0], l:end[1])
+    execute printf("keepjumps noautocmd silent! normal! %sG%s|v%sG%s|h\"_c\<C-o>\"xP", l:start[0], l:start[1], l:end[0], l:end[1])
   endif
 
   " fix cursor.
@@ -82,7 +82,10 @@ function! s:_apply(bufnr, text_edit, cursor_position) abort
     return v:true
   elseif a:text_edit.range.end.line == a:cursor_position.line && a:text_edit.range.end.character <= a:cursor_position.character
     let a:cursor_position.line += l:lines_len - l:range_len
-    let a:cursor_position.character += strchars(l:lines[-1]) - a:text_edit.range.end.character
+    let a:cursor_position.character = strchars(l:lines[-1]) + (a:cursor_position.character - a:text_edit.range.end.character)
+    if l:lines_len == 1
+      let a:cursor_position.character += a:text_edit.range.start.character
+    endif
     return v:true
   endif
   return v:false
