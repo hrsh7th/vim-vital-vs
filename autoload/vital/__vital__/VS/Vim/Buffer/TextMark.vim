@@ -78,7 +78,10 @@ function! s:_create_prop_type_name(mark) abort
 endfunction
 
 function! s:_create_prop_type_dict(mark) abort
-  let l:type = {}
+  let l:type = {
+  \   'start_incl': v:true,
+  \   'end_incl': v:true,
+  \ }
   if has_key(a:mark, 'highlight')
     let l:type.highlight = a:mark.highlight
   endif
@@ -129,12 +132,18 @@ else
       let l:end_col = (l:end_byte - line2byte(l:end_lnum)) + 1
       let l:end = s:Position.vim_to_lsp(a:bufnr, [l:end_lnum, l:end_col])
 
-      call add(l:props, extend(copy(s:vim_prop_types[l:prop.type]), {
-      \   'range': {
-      \     'start': l:start,
-      \     'end': l:end,
-      \   }
-      \ }))
+      if has_key(s:vim_prop_types, l:prop.type)
+        let l:_prop = {
+        \   'range': {
+        \     'start': l:start,
+        \     'end': l:end,
+        \   }
+        \ }
+        if has_key(s:vim_prop_types[l:prop.type], 'highlight')
+          let l:_prop.highlight = s:vim_prop_types[l:prop.type].highlight
+        endif
+        call add(l:props, l:_prop)
+      endif
       let l:prev_prop = l:prop
     endwhile
     return l:props
@@ -160,7 +169,7 @@ if has('nvim')
   endfunction
 else
   function! s:_clear(bufnr, id) abort
-    call prop_remove({ 'bufnr': a:bufnr, 'id': a:id })
+    call prop_remove({ 'bufnr': a:bufnr, 'id': a:id, 'all': v:true })
   endfunction
 endif
 
