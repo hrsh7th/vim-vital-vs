@@ -29,22 +29,24 @@ function! s:apply(path, text_edits) abort
   let l:target_bufname = a:path
   let l:cursor_position = s:Position.cursor()
 
+  let l:old_foldenable = &foldenable
   let l:old_virtualedit = &virtualedit
   let l:old_whichwrap = &whichwrap
   let l:old_winview = winsaveview()
   let l:old_reg = getreg('x')
 
+  let &foldenable = 0
   let &virtualedit = 'onemore'
   let &whichwrap = 'h'
 
   let l:fix_cursor = v:false
   call s:_switch(l:target_bufname)
   for l:text_edit in s:_normalize(a:text_edits)
-    call setreg('x', l:text_edit.newText, 'c')
-    let l:fix_cursor = l:fix_cursor || s:_apply(bufnr(l:target_bufname), l:text_edit, l:cursor_position)
+    let l:fix_cursor = s:_apply(bufnr(l:target_bufname), l:text_edit, l:cursor_position) || l:fix_cursor
   endfor
   call s:_switch(l:current_bufname)
 
+  let &foldenable = l:old_foldenable
   let &virtualedit = l:old_virtualedit
   let &whichwrap = l:old_whichwrap
   call winrestview(l:old_winview)
@@ -67,7 +69,7 @@ function! s:_apply(bufnr, text_edit, cursor_position) abort
   let l:range_len = (l:end[0] - l:start[0]) + 1
 
   " apply edit.
-  let l:old_reg = getreg('x')
+  call setreg('x', a:text_edit.newText, 'c')
   if l:start[0] == l:end[0] && l:start[1] == l:end[1]
     execute printf("keepjumps noautocmd silent! normal! %sG%s|\"xP", l:start[0], l:start[1])
   else
