@@ -302,7 +302,7 @@ endfunction
 "
 function! s:apply(content, position, text_edits, expected) abort
   for l:method in ['normal', 'func', 'nvim_buf_set_text']
-    call s:TextEdit.method(l:method)
+    call s:TextEdit.set_method(l:method)
 
     call s:put(a:content)
     call cursor(s:Position.lsp_to_vim('%', {
@@ -322,7 +322,7 @@ function! s:apply(content, position, text_edits, expected) abort
     \   },
     \   'newText': text_edit.text
     \ } }))
-    call s:assert.equals(split(a:expected, "\n", v:true), getline('^', '$'), l:method)
+    call s:assert.equals(split(a:expected, "\n", v:true), getline('^', '$'), s:TextEdit.get_method())
   endfor
 endfunction
 

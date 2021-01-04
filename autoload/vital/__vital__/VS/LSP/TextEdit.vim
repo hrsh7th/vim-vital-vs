@@ -13,30 +13,45 @@ function! s:_vital_depends() abort
   return ['VS.LSP.Text']
 endfunction
 
-"
-" method
-"
 let s:_method = 'auto'
-function! s:method(method) abort
+
+"
+" set_method
+"
+function! s:set_method(method) abort
   if a:method ==# 'nvim_buf_set_text' && exists('*nvim_buf_set_text')
     let s:_method = a:method
-  elseif a:method ==# 'normal' && !has('nvim')
+  elseif a:method ==# 'normal'
     let s:_method = a:method
   elseif a:method ==# 'func'
     let s:_method = a:method
   else
-    let l:_method = 'auto'
+    let s:_method = 'auto'
   endif
+endfunction
+
+"
+" get_method
+"
+function! s:get_method() abort
+  let l:method = s:_method
+  if l:method ==# 'auto'
+    if exists('*nvim_buf_set_text')
+      let l:method = 'nvim_buf_set_text'
+    elseif !has('nvim')
+      let l:method = 'normal'
+    else
+      let l:method = 'func'
+    endif
+  endif
+  return l:method
 endfunction
 
 "
 " is_text_mark_preserved
 "
 function! s:is_text_mark_preserved() abort
-  if s:_method ==# 'auto'
-    return exists('*nvim_buf_set_text') || !has('nvim')
-  endif
-  return index(['nvim_buf_set_text', 'normal'], s:_method)
+  return index(['nvim_buf_set_text', 'normal'], s:get_method())
 endfunction
 
 "
@@ -62,17 +77,7 @@ function! s:apply(path, text_edits) abort
 
   try
     call s:_switch(l:target_bufname)
-    let l:method = s:_method
-    if l:method ==# 'auto'
-      if exists('*nvim_buf_set_text')
-        let l:method = 'nvim_buf_set_text'
-      elseif !has('nvim')
-        let l:method = 'normal'
-      else
-        let l:method = 'func'
-      endif
-    endif
-
+    let l:method = s:get_method()
     if l:method ==# 'nvim_buf_set_text'
       let l:fix_cursor = s:_apply_all_nvim_buf_set_text(bufnr(l:target_bufname), s:_normalize(a:text_edits), l:cursor_position)
     elseif l:method ==# 'normal'
@@ -130,20 +135,18 @@ function! s:_apply_all_normal_command(bufnr, text_edits, cursor_position) abort
   let l:fix_cursor = v:false
 
   let l:buf = getbufline('%', '^', '$')
-  let l:command = 'noautocmd keepjumps normal! '
   for l:text_edit in a:text_edits
     let l:text_edit = s:_fix_text_edit(l:buf, deepcopy(l:text_edit))
     let l:start = s:Position.lsp_to_vim(a:bufnr, l:text_edit.range.start)
     let l:end = s:Position.lsp_to_vim(a:bufnr, l:text_edit.range.end)
     if l:start[0] != l:end[0] || l:start[1] != l:end[1]
-      let l:prepare = printf('%sG%s|v%sG%s|"_d', l:start[0], l:start[1], l:end[0], l:end[1])
+      let l:prepare = printf('%sG%s|v%sG%s|"_c', l:start[0], l:start[1], l:end[0], l:end[1])
     else
-      let l:prepare = printf('%sG%s|', l:start[0], l:start[1])
+      let l:prepare = printf('%sG%s|i', l:start[0], l:start[1])
     endif
-    let l:command .= printf("%si%s\<Esc>", l:prepare, l:text_edit.newText)
+    noautocmd keepjumps execute printf("normal! %s%s\<Esc>", l:prepare, l:text_edit.newText)
     let l:fix_cursor = s:_fix_cursor(a:cursor_position, l:text_edit, s:Text.split_by_eol(l:text_edit.newText)) || l:fix_cursor
   endfor
-  execute l:command
 
   return l:fix_cursor
 endfunction
