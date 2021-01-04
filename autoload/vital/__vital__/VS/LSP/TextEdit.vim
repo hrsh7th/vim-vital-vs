@@ -4,13 +4,14 @@
 function! s:_vital_loaded(V) abort
   let s:Text = a:V.import('VS.LSP.Text')
   let s:Position = a:V.import('VS.LSP.Position')
+  let s:Option = a:V.import('VS.Vim.Option')
 endfunction
 
 "
 " _vital_depends
 "
 function! s:_vital_depends() abort
-  return ['VS.LSP.Text']
+  return ['VS.LSP.Text', 'VS.LSP.Position', 'VS.Vim.Option']
 endfunction
 
 let s:_method = 'auto'
@@ -62,19 +63,6 @@ function! s:apply(path, text_edits) abort
   let l:target_bufname = a:path
   let l:cursor_position = s:Position.cursor()
 
-  let l:old_foldenable = &foldenable
-  let l:old_virtualedit = &virtualedit
-  let l:old_whichwrap = &whichwrap
-  let l:old_selection = &selection
-  let l:old_paste = &paste
-  let l:view = winsaveview()
-
-  let &foldenable = 0
-  let &virtualedit = 'onemore'
-  let &whichwrap = 'h,l'
-  let &selection = 'exclusive'
-  let &paste = 1
-
   try
     call s:_switch(l:target_bufname)
     let l:method = s:get_method()
@@ -90,13 +78,6 @@ function! s:apply(path, text_edits) abort
     call themis#log(string({ 'exception': v:exception, 'throwpoint': v:throwpoint }))
   endtry
 
-  let &foldenable = l:old_foldenable
-  let &virtualedit = l:old_virtualedit
-  let &whichwrap = l:old_whichwrap
-  let &selection = l:old_selection
-  let &paste = l:old_paste
-  call winrestview(l:view)
-
   if exists('l:fix_cursor') && l:fix_cursor && bufnr(l:current_bufname) == bufnr(l:target_bufname)
     call cursor(s:Position.lsp_to_vim('%', l:cursor_position))
   endif
@@ -110,7 +91,7 @@ function! s:_apply_all_nvim_buf_set_text(bufnr, text_edits, cursor_position) abo
 
   let l:buf = getbufline('%', '^', '$')
   for l:text_edit in a:text_edits
-    let l:text_edit = s:_fix_text_edit(l:buf, deepcopy(l:text_edit))
+    let l:text_edit = s:_fix_text_edit(l:buf, l:text_edit)
     let l:start = s:Position.lsp_to_vim(a:bufnr, l:text_edit.range.start)
     let l:end = s:Position.lsp_to_vim(a:bufnr, l:text_edit.range.end)
     let l:lines = s:Text.split_by_eol(l:text_edit.newText)
@@ -134,19 +115,34 @@ endfunction
 function! s:_apply_all_normal_command(bufnr, text_edits, cursor_position) abort
   let l:fix_cursor = v:false
 
-  let l:buf = getbufline('%', '^', '$')
-  for l:text_edit in a:text_edits
-    let l:text_edit = s:_fix_text_edit(l:buf, deepcopy(l:text_edit))
-    let l:start = s:Position.lsp_to_vim(a:bufnr, l:text_edit.range.start)
-    let l:end = s:Position.lsp_to_vim(a:bufnr, l:text_edit.range.end)
-    if l:start[0] != l:end[0] || l:start[1] != l:end[1]
-      let l:prepare = printf('%sG%s|v%sG%s|"_c', l:start[0], l:start[1], l:end[0], l:end[1])
-    else
-      let l:prepare = printf('%sG%s|i', l:start[0], l:start[1])
-    endif
-    noautocmd keepjumps execute printf("normal! %s%s\<Esc>", l:prepare, l:text_edit.newText)
-    let l:fix_cursor = s:_fix_cursor(a:cursor_position, l:text_edit, s:Text.split_by_eol(l:text_edit.newText)) || l:fix_cursor
-  endfor
+  try
+    let l:Restore = s:Option.define({
+    \   'foldenable': '1',
+    \   'virtualedit': 'onemore',
+    \   'whichwrap': 'h',
+    \   'selection': 'exclusive',
+    \ })
+    let l:view = winsaveview()
+
+    let l:buf = getbufline('%', '^', '$')
+    for l:text_edit in a:text_edits
+      let l:text_edit = s:_fix_text_edit(l:buf, l:text_edit)
+      let l:start = s:Position.lsp_to_vim(a:bufnr, l:text_edit.range.start)
+      let l:end = s:Position.lsp_to_vim(a:bufnr, l:text_edit.range.end)
+      if l:start[0] != l:end[0] || l:start[1] != l:end[1]
+        let l:prepare = printf('%sG%s|v%sG%s|"_c', l:start[0], l:start[1], l:end[0], l:end[1])
+      else
+        let l:prepare = printf('%sG%s|i', l:start[0], l:start[1])
+      endif
+      execute printf("noautocmd keepjumps normal! %s%s\<Esc>", l:prepare, l:text_edit.newText)
+      let l:fix_cursor = s:_fix_cursor(a:cursor_position, l:text_edit, s:Text.split_by_eol(l:text_edit.newText)) || l:fix_cursor
+    endfor
+  catch /.*/
+    echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+  finally
+    call l:Restore()
+    call winrestview(l:view)
+  endtry
 
   return l:fix_cursor
 endfunction
@@ -156,43 +152,52 @@ endfunction
 "
 function! s:_apply_all_func(bufnr, text_edits, cursor_position) abort
   let l:fix_cursor = v:false
+  try
+    let l:Restore = s:Option.define({
+    \   'foldenable': '1',
+    \ })
 
-  let l:buf = getbufline('%', '^', '$')
-  for l:text_edit in a:text_edits
-    let l:text_edit = s:_fix_text_edit(l:buf, deepcopy(l:text_edit))
-    let l:start_line = getline(l:text_edit.range.start.line + 1)
-    let l:end_line = getline(l:text_edit.range.end.line + 1)
-    let l:before_line = strcharpart(l:start_line, 0, l:text_edit.range.start.character)
-    let l:after_line = strcharpart(l:end_line, l:text_edit.range.end.character, strchars(l:end_line) - l:text_edit.range.end.character)
+    let l:buf = getbufline('%', '^', '$')
+    for l:text_edit in a:text_edits
+      let l:text_edit = s:_fix_text_edit(l:buf, l:text_edit)
+      let l:start_line = getline(l:text_edit.range.start.line + 1)
+      let l:end_line = getline(l:text_edit.range.end.line + 1)
+      let l:before_line = strcharpart(l:start_line, 0, l:text_edit.range.start.character)
+      let l:after_line = strcharpart(l:end_line, l:text_edit.range.end.character, strchars(l:end_line) - l:text_edit.range.end.character)
 
-    " create lines.
-    let l:lines = s:Text.split_by_eol(l:text_edit.newText)
-    let l:lines[0] = l:before_line . l:lines[0]
-    let l:lines[-1] = l:lines[-1] . l:after_line
+      " create lines.
+      let l:lines = s:Text.split_by_eol(l:text_edit.newText)
+      let l:lines[0] = l:before_line . l:lines[0]
+      let l:lines[-1] = l:lines[-1] . l:after_line
 
-    " save length.
-    let l:lines_len = len(l:lines)
-    let l:range_len = (l:text_edit.range.end.line - l:text_edit.range.start.line) + 1
+      " save length.
+      let l:lines_len = len(l:lines)
+      let l:range_len = (l:text_edit.range.end.line - l:text_edit.range.start.line) + 1
 
-    " append or delete lines.
-    if l:lines_len > l:range_len
-      call append(l:text_edit.range.end.line, repeat([''], l:lines_len - l:range_len))
-    elseif l:lines_len < l:range_len
-      execute printf('%s,%sdelete _', l:text_edit.range.start.line + l:lines_len, l:text_edit.range.end.line)
-    endif
-
-    " set lines.
-    let l:i = 0
-    while l:i < len(l:lines)
-      let l:lnum = l:text_edit.range.start.line + l:i + 1
-      if get(getbufline(a:bufnr, l:lnum), 0, v:null) !=# l:lines[l:i]
-        call setline(l:lnum, l:lines[l:i])
+      " append or delete lines.
+      if l:lines_len > l:range_len
+        call append(l:text_edit.range.end.line, repeat([''], l:lines_len - l:range_len))
+      elseif l:lines_len < l:range_len
+        execute printf('%s,%sdelete _', l:text_edit.range.start.line + l:lines_len, l:text_edit.range.end.line)
       endif
-      let l:i += 1
-    endwhile
 
-    let l:fix_cursor = s:_fix_cursor(a:cursor_position, l:text_edit, s:Text.split_by_eol(l:text_edit.newText))
-  endfor
+      " set lines.
+      let l:i = 0
+      while l:i < len(l:lines)
+        let l:lnum = l:text_edit.range.start.line + l:i + 1
+        if get(getbufline(a:bufnr, l:lnum), 0, v:null) !=# l:lines[l:i]
+          call setline(l:lnum, l:lines[l:i])
+        endif
+        let l:i += 1
+      endwhile
+
+      let l:fix_cursor = s:_fix_cursor(a:cursor_position, l:text_edit, s:Text.split_by_eol(l:text_edit.newText))
+    endfor
+  catch /.*/
+    echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+  finally
+    call l:Restore()
+  endtry
 
   return l:fix_cursor
 endfunction
@@ -293,7 +298,7 @@ function! s:_fix_text_edit(buf, text_edit) abort
   if l:max <= a:text_edit.range.start.line
     let a:text_edit.range.start.line = l:max - 1
     let a:text_edit.range.start.character = strchars(a:buf[-1])
-    let a:text_edit.newText = "\n" . a:text_edit.newText[0 : -2]
+    let a:text_edit.newText = "\n" . a:text_edit.newText
   endif
   if l:max <= a:text_edit.range.end.line
     let a:text_edit.range.end.line = l:max - 1
