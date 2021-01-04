@@ -1,0 +1,26 @@
+let s:expect = themis#helper('expect')
+let s:Option = vital#vital#import('VS.Vim.Option')
+
+Describe vital#__vital__#VS#Vim#Option
+
+  Describe #preserve
+
+    It should define options and can be restore
+      let &virtualedit = ''
+      let &foldenable = 0
+      let l:Restore = s:Option.define({
+      \   'virtualedit': 'all',
+      \   'foldenable': '1'
+      \ })
+      call s:expect(&virtualedit).to_equal('all')
+      call s:expect(&foldenable).to_equal('1')
+      call l:Restore()
+      call s:expect(&virtualedit).to_equal('')
+      call s:expect(&foldenable).to_equal('0')
+    End
+
+  End
+
+End
+
+
