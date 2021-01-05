@@ -46,8 +46,10 @@ function! s:get_method() abort
   if s:_method ==# 'auto'
     if exists('*nvim_buf_set_text')
       return 'nvim_buf_set_text'
-    else
+    elseif !has('nvim')
       return 'normal'
+    else
+      return 'function'
     endif
   endif
   return s:_method
