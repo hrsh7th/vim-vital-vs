@@ -242,8 +242,11 @@ End
 
 function! s:check(marks, edits, expected_marks) abort
   let l:buffer = getline('^', '$')
-  for l:method in ['nvim_buf_set_text', 'normal']
+  for l:method in s:TextEdit.get_methods()
     call s:TextEdit.set_method(l:method)
+    if !s:TextEdit.is_text_mark_preserved()
+      continue
+    endif
 
     %delete _ | call setline(1, l:buffer)
     call s:TextMark.clear('%', 'test')
