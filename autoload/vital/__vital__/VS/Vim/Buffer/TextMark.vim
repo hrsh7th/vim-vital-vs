@@ -16,6 +16,17 @@ let s:nvim_namespace = {}
 let s:vim_prop_types = {}
 
 "
+" is_available
+"
+function! s:is_available() abort
+  if has('nvim')
+    return exists('*nvim_buf_set_text')
+  else
+    return exists('*prop_type_add') && exists('*prop_add')
+  endif
+endfunction
+
+"
 " @param {number} bufnr
 " @param {string} id
 " @param {array} marks
