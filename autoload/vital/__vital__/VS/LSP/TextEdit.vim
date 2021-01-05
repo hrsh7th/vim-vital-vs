@@ -47,7 +47,7 @@ function! s:get_method() abort
     if exists('*nvim_buf_set_text')
       return 'nvim_buf_set_text'
     else
-      return 'function'
+      return 'normal'
     endif
   endif
   return s:_method
@@ -142,7 +142,7 @@ function! s:_methods.normal(bufnr, text_edits, cursor_position) abort
       else
         let l:command = printf('%sG%s|', l:start[0], l:start[1])
       endif
-      call setreg('x', l:text_edit.newText, 'c')
+      call setreg('x', s:Text.normalize_eol(l:text_edit.newText), 'c')
       execute printf('noautocmd keepjumps normal! %s"xP', l:command)
 
       let l:fix_cursor = s:_fix_cursor(a:cursor_position, l:text_edit, s:Text.split_by_eol(l:text_edit.newText)) || l:fix_cursor
