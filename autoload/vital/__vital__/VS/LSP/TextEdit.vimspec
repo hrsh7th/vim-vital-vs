@@ -1,9 +1,21 @@
 let s:expect = themis#helper('expect')
 let s:assert = themis#helper('assert')
+let s:Option = vital#vital#import('VS.Vim.Option')
 let s:TextEdit = vital#vital#import('VS.LSP.TextEdit')
 let s:Position = vital#vital#import('VS.LSP.Position')
 
 Describe vital#__vital__#VS#LSP#TextEdit
+
+  Before each
+    let s:Restore = s:Option.define({
+    \   'foldenable': '1',
+    \   'foldmethod': 'manual',
+    \ })
+  End
+
+  After each
+    call s:Restore()
+  End
 
   Describe #apply
 
@@ -298,6 +310,18 @@ Describe vital#__vital__#VS#LSP#TextEdit
         \ }], "import java.util.ArrayList;\nimport java.util.LinkedList;")
       End
 
+      It should work 1
+        call s:apply("package main\n\nimport java.util.ArrayList;\n\npublic class Main {}", [0, 0], [{
+        \   'start': [2, 0],
+        \   'end': [3, 0],
+        \   'text': '',
+        \ }, {
+        \   'start': [2, 0],
+        \   'end': [2, 0],
+        \   'text': "import java.util.ArrayList;\n",
+        \ }], "package main\n\nimport java.util.ArrayList;\n\npublic class Main {}")
+      End
+
     End
 
   End
@@ -325,6 +349,7 @@ function! s:apply(content, position, text_edits, expected) abort
     call s:TextEdit.set_method(l:method)
 
     call s:put(a:content)
+    normal! ggvGzf
     call cursor(s:Position.lsp_to_vim('%', {
     \   'line': a:position[0],
     \   'character': a:position[1],

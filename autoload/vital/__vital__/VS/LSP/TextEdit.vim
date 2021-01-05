@@ -57,7 +57,7 @@ endfunction
 " get_methods
 "
 function! s:get_methods() abort
-  return ['function', 'nvim_buf_set_text', 'normal']
+  return ['nvim_buf_set_text', 'normal', 'function']
 endfunction
 
 "
@@ -80,7 +80,7 @@ function! s:apply(path, text_edits) abort
     let [l:has_overflowed, l:text_edits] = s:_normalize(bufnr(l:target_bufname), a:text_edits)
     let l:fix_cursor = s:_methods[s:get_method()](bufnr(l:target_bufname), l:text_edits, l:cursor_position)
     if l:has_overflowed && getline('$') ==# ''
-      $delete _
+      call s:delete(bufnr(l:target_bufname), '$', '$')
     endif
     call s:_switch(l:current_bufname)
   catch /.*/
@@ -126,7 +126,7 @@ function! s:_methods.normal(bufnr, text_edits, cursor_position) abort
 
   try
     let l:Restore = s:Option.define({
-    \   'foldenable': '1',
+    \   'foldenable': '0',
     \   'virtualedit': 'onemore',
     \   'whichwrap': 'h',
     \   'selection': 'exclusive',
@@ -163,50 +163,41 @@ endfunction
 "
 function! s:_methods.function(bufnr, text_edits, cursor_position) abort
   let l:fix_cursor = v:false
-  try
-    let l:Restore = s:Option.define({
-    \   'foldenable': '1',
-    \ })
 
-    for l:text_edit in a:text_edits
-      let l:start_line = getline(l:text_edit.range.start.line + 1)
-      let l:end_line = getline(l:text_edit.range.end.line + 1)
-      let l:before_line = strcharpart(l:start_line, 0, l:text_edit.range.start.character)
-      let l:after_line = strcharpart(l:end_line, l:text_edit.range.end.character, strchars(l:end_line) - l:text_edit.range.end.character)
+  for l:text_edit in a:text_edits
+    let l:start_line = getline(l:text_edit.range.start.line + 1)
+    let l:end_line = getline(l:text_edit.range.end.line + 1)
+    let l:before_line = strcharpart(l:start_line, 0, l:text_edit.range.start.character)
+    let l:after_line = strcharpart(l:end_line, l:text_edit.range.end.character, strchars(l:end_line) - l:text_edit.range.end.character)
 
-      " create lines.
-      let l:lines = s:Text.split_by_eol(l:text_edit.newText)
-      let l:lines[0] = l:before_line . l:lines[0]
-      let l:lines[-1] = l:lines[-1] . l:after_line
+    " create lines.
+    let l:lines = s:Text.split_by_eol(l:text_edit.newText)
+    let l:lines[0] = l:before_line . l:lines[0]
+    let l:lines[-1] = l:lines[-1] . l:after_line
 
-      " save length.
-      let l:lines_len = len(l:lines)
-      let l:range_len = (l:text_edit.range.end.line - l:text_edit.range.start.line) + 1
+    " save length.
+    let l:lines_len = len(l:lines)
+    let l:range_len = (l:text_edit.range.end.line - l:text_edit.range.start.line) + 1
 
-      " append or delete lines.
-      if l:lines_len > l:range_len
-        call append(l:text_edit.range.end.line, repeat([''], l:lines_len - l:range_len))
-      elseif l:lines_len < l:range_len
-        execute printf('%s,%sdelete _', l:text_edit.range.start.line + l:lines_len, l:text_edit.range.end.line)
+    " append or delete lines.
+    if l:lines_len > l:range_len
+      call append(l:text_edit.range.end.line, repeat([''], l:lines_len - l:range_len))
+    elseif l:lines_len < l:range_len
+      call s:delete(a:bufnr, l:text_edit.range.start.line + l:lines_len, l:text_edit.range.end.line)
+    endif
+
+    " set lines.
+    let l:i = 0
+    while l:i < len(l:lines)
+      let l:lnum = l:text_edit.range.start.line + l:i + 1
+      if get(getbufline(a:bufnr, l:lnum), 0, v:null) !=# l:lines[l:i]
+        call setline(l:lnum, l:lines[l:i])
       endif
+      let l:i += 1
+    endwhile
 
-      " set lines.
-      let l:i = 0
-      while l:i < len(l:lines)
-        let l:lnum = l:text_edit.range.start.line + l:i + 1
-        if get(getbufline(a:bufnr, l:lnum), 0, v:null) !=# l:lines[l:i]
-          call setline(l:lnum, l:lines[l:i])
-        endif
-        let l:i += 1
-      endwhile
-
-      let l:fix_cursor = s:_fix_cursor(a:cursor_position, l:text_edit, s:Text.split_by_eol(l:text_edit.newText))
-    endfor
-  catch /.*/
-    echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
-  finally
-    call l:Restore()
-  endtry
+    let l:fix_cursor = s:_fix_cursor(a:cursor_position, l:text_edit, s:Text.split_by_eol(l:text_edit.newText))
+  endfor
 
   return l:fix_cursor
 endfunction
@@ -270,7 +261,6 @@ function! s:_check(text_edits) abort
       \   l:range.end.line == l:text_edit.range.start.line &&
       \   l:range.end.character > l:text_edit.range.start.character
       \ )
-
         echomsg 'VS.LSP.TextEdit: range overlapped.'
       endif
       let l:range = l:text_edit.range
@@ -328,3 +318,18 @@ function! s:_switch(path) abort
   endif
 endfunction
 
+"
+" delete
+"
+function! s:delete(bufnr, start, end) abort
+  if exists('*deletebufline')
+    call deletebufline(a:bufnr, a:start, a:end)
+  else
+    try
+      let l:Restore = s:Option.define({ 'foldenable': '0' })
+      execute printf('%s,%sdelete _', a:start, a:end)
+    finally
+      call l:Restore()
+    endtry
+  endif
+endfunction
