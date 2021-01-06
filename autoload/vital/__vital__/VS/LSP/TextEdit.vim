@@ -25,7 +25,7 @@ function! s:apply(path, text_edits) abort
   try
     let l:fix_cursor = s:_substitute(l:target_bufnr, a:text_edits, l:current_position)
   catch /.*/
-    call themis#log(string({ 'exception': v:exception, 'throwpoint': v:throwpoint }))
+    echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
   endtry
   let l:current_bufnr = s:_switch(l:current_bufname)
 
@@ -69,7 +69,7 @@ function! s:_substitute(bufnr, text_edits, current_position) abort
       $delete _
     endif
   catch /.*/
-    call themis#log(string({ 'exception': v:exception, 'throwpoint': v:throwpoint }))
+    echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
   finally
     " Restore state.
     call l:Restore()
