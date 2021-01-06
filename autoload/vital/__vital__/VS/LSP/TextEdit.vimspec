@@ -1,5 +1,4 @@
 let s:expect = themis#helper('expect')
-let s:assert = themis#helper('assert')
 let s:Option = vital#vital#import('VS.Vim.Option')
 let s:TextEdit = vital#vital#import('VS.LSP.TextEdit')
 let s:Position = vital#vital#import('VS.LSP.Position')
@@ -282,6 +281,11 @@ Describe vital#__vital__#VS#LSP#TextEdit
 
     Describe misc
 
+      It should safe to null
+        call s:TextEdit.apply('%', v:null)
+        call s:TextEdit.apply('%', [v:null])
+      End
+
       It should remove ending "\n" from TextEdit.newText when the end position overflowed
         call s:apply("import * as assert from 'assert';\n\nconsole.log(assert);", [0, 0], [{
         \   'start': [0, 0],
@@ -310,18 +314,6 @@ Describe vital#__vital__#VS#LSP#TextEdit
         \ }], "import java.util.ArrayList;\nimport java.util.LinkedList;")
       End
 
-      It should work 1
-        call s:apply("package main\n\nimport java.util.ArrayList;\n\npublic class Main {}", [0, 0], [{
-        \   'start': [2, 0],
-        \   'end': [3, 0],
-        \   'text': '',
-        \ }, {
-        \   'start': [2, 0],
-        \   'end': [2, 0],
-        \   'text': "import java.util.ArrayList;\n",
-        \ }], "package main\n\nimport java.util.ArrayList;\n\npublic class Main {}")
-      End
-
     End
 
   End
@@ -345,29 +337,25 @@ endfunction
 " apply
 "
 function! s:apply(content, position, text_edits, expected) abort
-  for l:method in s:TextEdit.get_methods()
-    call s:TextEdit.set_method(l:method)
-
-    call s:put(a:content)
-    normal! ggvGzf
-    call cursor(s:Position.lsp_to_vim('%', {
-    \   'line': a:position[0],
-    \   'character': a:position[1],
-    \ }))
-    call s:TextEdit.apply(bufnr('%'), map(copy(a:text_edits), { _, text_edit -> {
-    \   'range': {
-    \     'start': {
-    \       'line': text_edit.start[0],
-    \       'character': text_edit.start[1],
-    \     },
-    \     'end': {
-    \       'line': text_edit.end[0],
-    \       'character': text_edit.end[1],
-    \     },
-    \   },
-    \   'newText': text_edit.text
-    \ } }))
-    call s:assert.equals(split(a:expected, "\n", v:true), getline('^', '$'), s:TextEdit.get_method())
-  endfor
+  call s:put(a:content)
+  normal! ggvGzf
+  call cursor(s:Position.lsp_to_vim('%', {
+  \   'line': a:position[0],
+  \   'character': a:position[1],
+  \ }))
+  call s:TextEdit.apply(bufnr('%'), map(copy(a:text_edits), { _, text_edit -> {
+  \   'range': {
+  \     'start': {
+  \       'line': text_edit.start[0],
+  \       'character': text_edit.start[1],
+  \     },
+  \     'end': {
+  \       'line': text_edit.end[0],
+  \       'character': text_edit.end[1],
+  \     },
+  \   },
+  \   'newText': text_edit.text
+  \ } }))
+  call s:expect(getline('^', '$')).to_equal(split(a:expected, "\n", v:true))
 endfunction
 
