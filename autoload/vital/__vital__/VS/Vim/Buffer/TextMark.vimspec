@@ -1,5 +1,4 @@
 let s:expect = themis#helper('expect')
-let s:assert = themis#helper('assert')
 let s:Position = vital#vital#import('VS.LSP.Position')
 let s:TextEdit = vital#vital#import('VS.LSP.TextEdit')
 let s:TextMark = vital#vital#import('VS.Vim.Buffer.TextMark')
@@ -198,7 +197,7 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \   }
       \ }])
 
-      " 'b' -> 'bar' ← It can't pass on nvim_buf_set_text. We should wait for nvim_buf_set_text's gravity.
+      " 'b' -> 'bar' ← It can't pass on nvim_buf_set_extmark. We should wait for nvim_buf_set_text's gravity.
       " "call s:check(s:TextMark.get('%', 'test'), [{
       " "\   'start': [1, 1],
       " "\   'end': [1, 1],
@@ -242,26 +241,19 @@ End
 
 function! s:check(marks, edits, expected_marks) abort
   let l:buffer = getline('^', '$')
-  for l:method in s:TextEdit.get_methods()
-    call s:TextEdit.set_method(l:method)
-    if !s:TextEdit.is_text_mark_preserved()
-      continue
-    endif
+  %delete _ | call setline(1, l:buffer)
+  call s:TextMark.clear('%', 'test')
+  call s:TextMark.set('%', 'test', deepcopy(a:marks))
+  call s:expect(s:TextMark.get('%', 'test')).to_equal(a:marks)
 
-    %delete _ | call setline(1, l:buffer)
-    call s:TextMark.clear('%', 'test')
-    call s:TextMark.set('%', 'test', deepcopy(a:marks))
-    call s:expect(s:TextMark.get('%', 'test')).to_equal(a:marks)
+  call s:TextEdit.apply('%', map(deepcopy(a:edits), { _, e -> {
+  \   'range': {
+  \     'start': { 'line': e.start[0], 'character': e.start[1] },
+  \     'end': { 'line': e.end[0], 'character': e.end[1] },
+  \   },
+  \   'newText': e.text,
+  \ } }))
 
-    call s:TextEdit.apply('%', map(deepcopy(a:edits), { _, e -> {
-    \   'range': {
-    \     'start': { 'line': e.start[0], 'character': e.start[1] },
-    \     'end': { 'line': e.end[0], 'character': e.end[1] },
-    \   },
-    \   'newText': e.text,
-    \ } }))
-
-    call s:assert.equals(s:TextMark.get('%', 'test'), a:expected_marks, s:TextEdit.get_method())
-  endfor
+  call s:expect(s:TextMark.get('%', 'test')).to_equal(a:expected_marks)
 endfunction
 
