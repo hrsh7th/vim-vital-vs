@@ -286,6 +286,26 @@ Describe vital#__vital__#VS#LSP#TextEdit
         call s:TextEdit.apply('%', [v:null])
       End
 
+      It should preserve marks
+        call s:put("a\nb\nc\nd")
+        normal! 2Gma
+        call s:expect(line("'a")).to_equal(2)
+        call s:TextEdit.apply('%', [{
+        \   'range': {
+        \     'start': {
+        \       'line': 0,
+        \       'character': 0,
+        \     },
+        \     'end': {
+        \       'line': 0,
+        \       'character': 0,
+        \     },
+        \   },
+        \   'newText': "\n"
+        \ }])
+        call s:expect(line("'a")).to_equal(3)
+      End
+
       It should remove ending "\n" from TextEdit.newText when the end position overflowed
         call s:apply("import * as assert from 'assert';\n\nconsole.log(assert);", [0, 0], [{
         \   'start': [0, 0],
@@ -323,14 +343,11 @@ End
 "
 " put
 "
-function! s:put(content, ...) abort
+function! s:put(content) abort
   enew!
   let l:content = type(a:content) == type([]) ? a:content : split(a:content, "\n", v:true)
   put!=l:content
   normal! Gdd
-  if a:0 > 0
-    call cursor(a:000[0])
-  endif
 endfunction
 
 "

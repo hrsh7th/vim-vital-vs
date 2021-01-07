@@ -54,12 +54,13 @@ function! s:_substitute(bufnr, text_edits, current_position) abort
       let l:start = s:Position.lsp_to_vim(a:bufnr, l:text_edit.range.start)
       let l:end = s:Position.lsp_to_vim(a:bufnr, l:text_edit.range.end)
       call setreg('x', s:Text.normalize_eol(l:text_edit.newText), 'c')
-      execute printf('noautocmd keepjumps %ssubstitute/\%%%sl\%%%sc\zs\_.\{-}\ze\%%%sl\%%%sc/\=getreg("x")/',
+      execute printf('noautocmd keeppatterns keepjumps silent %ssubstitute/\%%%sl\%%%sc\zs\_.\{-}\ze\%%%sl\%%%sc/\=getreg("x")/%se',
       \   l:start[0],
       \   l:start[0],
       \   l:start[1],
       \   l:end[0],
-      \   l:end[1]
+      \   l:end[1],
+      \   &gdefault ? 'g' : ''
       \ )
       let l:fix_cursor = s:_fix_cursor(a:current_position, l:text_edit, getreg('x', 1, v:true)) || l:fix_cursor
     endfor
