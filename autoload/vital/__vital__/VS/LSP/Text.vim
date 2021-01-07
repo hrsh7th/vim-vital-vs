@@ -2,7 +2,7 @@
 " normalize_eol
 "
 function! s:normalize_eol(text) abort
-  return substitute(a:text, "\r\n\\|\r\\|\n", "\n", 'g')
+  return substitute(a:text, "\r\n\\|\r", "\n", 'g')
 endfunction
 
 "
