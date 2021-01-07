@@ -1,0 +1,29 @@
+let s:expect = themis#helper('expect')
+let s:MarkupContent = vital#vital#import('VS.LSP.MarkupContent')
+
+Describe vital#__vital__#VS#LSP#MarkupContent
+
+  Describe #normalize
+
+    It should normalize variable type
+      call s:expect(s:MarkupContent.normalize('test')).to_be_string()
+      call s:expect(s:MarkupContent.normalize(['test'])).to_be_string()
+      call s:expect(s:MarkupContent.normalize({ 'language': 'vim', 'value': 'test' })).to_be_string()
+    End
+
+    It should convert string as compact
+      call s:expect(s:MarkupContent.normalize(join([
+      \   '',
+      \   '```typescript',
+      \   'console.log(variable)',
+      \   '```',
+      \   '',
+      \ ], "\n"))).to_equal(join([
+      \   '```typescript console.log(variable) ```'
+      \ ], "\n"))
+    End
+
+  End
+
+End
+
