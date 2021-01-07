@@ -4,30 +4,14 @@ let s:TextEdit = vital#vital#import('VS.LSP.TextEdit')
 let s:TextMark = vital#vital#import('VS.Vim.Buffer.TextMark')
 
 let s:mark1 = {
-\   'range': {
-\     'start': {
-\       'line': 1,
-\       'character': 0,
-\     },
-\     'end': {
-\       'line': 2,
-\       'character': 0,
-\     },
-\   },
+\   'start_pos': [2, 1],
+\   'end_pos': [3, 1],
 \   'highlight': 'ErrorMsg'
 \ }
 
 let s:mark2 = {
-\   'range': {
-\     'start': {
-\       'line': 2,
-\       'character': 0,
-\     },
-\     'end': {
-\       'line': 3,
-\       'character': 0,
-\     },
-\   },
+\   'start_pos': [3, 1],
+\   'end_pos': [4, 1],
 \   'highlight': 'ErrorMsg'
 \ }
 
@@ -67,8 +51,8 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
 
       let l:expects = deepcopy([s:mark1, s:mark2])
       for l:mark in l:expects
-        let l:mark.range.start.line += 1
-        let l:mark.range.end.line += 1
+        let l:mark.start_pos[0] += 1
+        let l:mark.end_pos[0] += 1
       endfor
       call s:expect(l:marks).to_equal(l:expects)
     End
@@ -93,16 +77,8 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
     It should preserve marks with edit
       " Mark of f`o`o
       let l:mark = {
-      \   'range': {
-      \     'start': {
-      \       'line': 1,
-      \       'character': 1,
-      \     },
-      \     'end': {
-      \       'line': 1,
-      \       'character': 2,
-      \     },
-      \   }
+      \   'start_pos': [2, 2],
+      \   'end_pos': [2, 3],
       \ }
       call s:TextMark.set('%', 'test', [l:mark])
       call s:expect(s:TextMark.get('%', 'test')).to_equal([l:mark])
@@ -113,16 +89,8 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \   'end': [1, 2],
       \   'text': ''
       \ }], [{
-      \   'range': {
-      \     'start': {
-      \       'line': 1,
-      \       'character': 1,
-      \     },
-      \     'end': {
-      \       'line': 1,
-      \       'character': 1,
-      \     },
-      \   }
+      \   'start_pos': [2, 2],
+      \   'end_pos': [2, 2],
       \ }])
 
       " f''o -> f'bar'o
@@ -131,16 +99,8 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \   'end': [1, 1],
       \   'text': 'bar'
       \ }], [{
-      \   'range': {
-      \     'start': {
-      \       'line': 1,
-      \       'character': 1,
-      \     },
-      \     'end': {
-      \       'line': 1,
-      \       'character': 4,
-      \     },
-      \   }
+      \   'start_pos': [2, 2],
+      \   'end_pos': [2, 5],
       \ }])
 
       " f'bar'o -> ''
@@ -149,16 +109,8 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \   'end': [1, 5],
       \   'text': ''
       \ }], [{
-      \   'range': {
-      \     'start': {
-      \       'line': 1,
-      \       'character': 0,
-      \     },
-      \     'end': {
-      \       'line': 1,
-      \       'character': 0,
-      \     },
-      \   }
+      \   'start_pos': [2, 1],
+      \   'end_pos': [2, 1],
       \ }])
 
       " '' -> ''
@@ -167,16 +119,8 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \   'end': [1, 0],
       \   'text': ''
       \ }], [{
-      \   'range': {
-      \     'start': {
-      \       'line': 1,
-      \       'character': 0,
-      \     },
-      \     'end': {
-      \       'line': 1,
-      \       'character': 0,
-      \     },
-      \   }
+      \   'start_pos': [2, 1],
+      \   'end_pos': [2, 1],
       \ }])
 
       " '' -> 'b'
@@ -185,16 +129,8 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \   'end': [1, 0],
       \   'text': 'b'
       \ }], [{
-      \   'range': {
-      \     'start': {
-      \       'line': 1,
-      \       'character': 0,
-      \     },
-      \     'end': {
-      \       'line': 1,
-      \       'character': 1,
-      \     },
-      \   }
+      \   'start_pos': [2, 1],
+      \   'end_pos': [2, 2],
       \ }])
 
       " 'b' -> 'bar' ← It can't pass on nvim_buf_set_extmark. We should wait for nvim_buf_set_text's gravity.
@@ -203,35 +139,16 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       " "\   'end': [1, 1],
       " "\   'text': 'ar'
       " "\ }], [{
-      " "\   'range': {
-      " "\     'start': {
-      " "\       'line': 1,
-      " "\       'character': 0,
-      " "\     },
-      " "\     'end': {
-      " "\       'line': 1,
-      " "\       'character': 3,
-      " "\     },
-      " "\   }
+      " "\   'start_pos': [2, 1],
+      " "\   'end_pos': [2, 4],
       " "\ }])
 
       " 'b' -> ''
-      call cursor(s:Position.lsp_to_vim('%', {
-      \   'line': 1,
-      \   'character': 1,
-      \ }))
+      call cursor([0, 0])
       call feedkeys('diw', 'nxt')
       call s:expect(s:TextMark.get('%', 'test')).to_equal([{
-      \   'range': {
-      \     'start': {
-      \       'line': 1,
-      \       'character': 0,
-      \     },
-      \     'end': {
-      \       'line': 1,
-      \       'character': 0,
-      \     },
-      \   }
+      \   'start_pos': [2, 1],
+      \   'end_pos': [2, 2],
       \ }])
     End
 
