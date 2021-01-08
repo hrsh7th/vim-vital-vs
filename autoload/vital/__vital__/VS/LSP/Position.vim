@@ -31,7 +31,7 @@ function! s:lsp_to_vim(expr, position) abort
   if l:line is v:null
     return [a:position.line + 1, a:position.character + 1]
   endif
-  return [a:position.line + 1, strlen(strcharpart(l:line, 0, a:position.character)) + 1]
+  return [a:position.line + 1, byteidx(l:line, a:position.character) + 1]
 endfunction
 
 "

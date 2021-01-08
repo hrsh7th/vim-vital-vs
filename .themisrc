@@ -1,3 +1,6 @@
+set encoding=utf-8
+set hidden
+
 let s:misc = expand('<sfile>:p:h') . '/misc'
 
 if !isdirectory(s:misc . '/vital.vim')
@@ -9,5 +12,3 @@ call themis#option('recursive', 1)
 call themis#option('runtimepath', [
 \   s:misc . '/vital.vim',
 \ ])
-
-set hidden
