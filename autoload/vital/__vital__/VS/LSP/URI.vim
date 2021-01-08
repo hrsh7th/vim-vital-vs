@@ -7,7 +7,7 @@ let s:decode_cache = {}
 function! s:is_windows(v) abort
   let s:_is_windows = a:v
 endfunction
-let s:_is_windows = has('windows')
+let s:_is_windows = has('win16') || has('win32') || has('win64') || has('win')
 
 "
 " clear
