@@ -4,6 +4,7 @@
 function! s:_vital_loaded(V) abort
   let s:Text = a:V.import('VS.LSP.Text')
   let s:Position = a:V.import('VS.LSP.Position')
+  let s:Buffer = a:V.import('VS.Vim.Buffer')
   let s:Option = a:V.import('VS.Vim.Option')
 endfunction
 
@@ -11,7 +12,7 @@ endfunction
 " _vital_depends
 "
 function! s:_vital_depends() abort
-  return ['VS.LSP.Text', 'VS.LSP.Position', 'VS.Vim.Option']
+  return ['VS.LSP.Text', 'VS.LSP.Position', 'VS.Vim.Buffer', 'VS.Vim.Option']
 endfunction
 
 "
@@ -155,21 +156,20 @@ endfunction
 " _fix_text_edits
 "
 function! s:_fix_text_edits(bufnr, text_edits) abort
-  let l:buf = getbufline(a:bufnr, '^', '$')
-  let l:max = len(l:buf)
+  let l:max = s:Buffer.get_line_count(a:bufnr)
 
   let l:fixeol = v:false
   let l:text_edits = []
   for l:text_edit in a:text_edits
     if l:max <= l:text_edit.range.start.line
       let l:text_edit.range.start.line = l:max - 1
-      let l:text_edit.range.start.character = strchars(get(l:buf, -1, 0))
+      let l:text_edit.range.start.character = strchars(get(getbufline(a:bufnr, '$'), 0, ''))
       let l:text_edit.newText = "\n" . l:text_edit.newText
       let l:fixeol = &fixendofline && !&binary
     endif
     if l:max <= l:text_edit.range.end.line
       let l:text_edit.range.end.line = l:max - 1
-      let l:text_edit.range.end.character = strchars(get(l:buf, -1, 0))
+      let l:text_edit.range.end.character = strchars(get(getbufline(a:bufnr, '$'), 0, ''))
       let l:fixeol = &fixendofline && !&binary
     endif
     call add(l:text_edits, l:text_edit)
