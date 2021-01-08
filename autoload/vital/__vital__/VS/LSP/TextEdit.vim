@@ -39,6 +39,7 @@ function! s:_substitute(bufnr, text_edits, current_position) abort
     " Save state.
     let l:Restore = s:Option.define({
     \   'foldenable': '0',
+    \   'lazyredraw': '1',
     \ })
     let l:view = winsaveview()
 
@@ -61,7 +62,7 @@ function! s:_substitute(bufnr, text_edits, current_position) abort
 
     " Remove last empty line if fixeol enabled.
     if l:fixeol && getline('$') ==# ''
-      $delete _
+      noautocmd keeppatterns keepjumps silent $delete _
     endif
   catch /.*/
     echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
