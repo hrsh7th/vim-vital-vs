@@ -4,11 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "run-s test:**",
-    "test:vim:normal": "THEMIS_VIM=vim themis .",
-    "test:vim:with-lua": "THEMIS_VIM=vim WITH_LUA=1 themis .",
-    "test:nvim:normal": "THEMIS_VIM=nvim themis .",
-    "test:nvim:with-lua": "THEMIS_VIM=nvim WITH_LUA=1 themis ."
+    "test": "run-s test:*",
+    "test:vim": "THEMIS_VIM=vim themis .",
+    "test:nvim": "THEMIS_VIM=nvim themis ."
   },
   "repository": {
     "type": "git",
