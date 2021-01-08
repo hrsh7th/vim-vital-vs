@@ -19,7 +19,7 @@ function! s:vim_to_lsp(expr, pos) abort
 
   return {
   \   'line': a:pos[0] - 1,
-  \   'character': s:_charidx(l:line, a:pos[1] - 1)
+  \   'character': strchars(strpart(l:line, 0, a:pos[1] - 1))
   \ }
 endfunction
 
@@ -31,7 +31,7 @@ function! s:lsp_to_vim(expr, position) abort
   if l:line is v:null
     return [a:position.line + 1, a:position.character + 1]
   endif
-  return [a:position.line + 1, s:_byteidx(l:line, a:position.character) + 1]
+  return [a:position.line + 1, byteidx(l:line, a:position.character) + 1]
 endfunction
 
 "
@@ -58,36 +58,3 @@ else
   endfunction
 endif
 
-"
-" _byteidx
-"
-if exists('*byteidx')
-  function! s:_byteidx(line, charidx) abort
-    return byteidx(a:line, a:charidx)
-  endfunction
-elseif has('nvim')
-  function! s:_byteidx(line, charidx) abort
-    return v:lua.vim.str_byteindex(a:line, a:charidx)
-  endfunction
-else
-  function! s:_byteidx(line, charidx) abort
-    return strlen(strcharpart(a:line, 0, a:charidx))
-  endfunction
-endif
-
-"
-" _charidx
-"
-if exists('*charidx')
-  function! s:_charidx(line, byteidx) abort
-    return charidx(a:line, a:byteidx, v:true)
-  endfunction
-elseif has('nvim')
-  function! s:_charidx(line, byteidx) abort
-    return v:lua.vim.str_utfindex(a:line, a:byteidx)
-  endfunction
-else
-  function! s:_charidx(line, byteidx) abort
-    return strchars(strpart(a:line, 0, a:byteidx))
-  endfunction
-endif
