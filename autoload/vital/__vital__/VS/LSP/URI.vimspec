@@ -1,0 +1,33 @@
+let s:expect = themis#helper('expect')
+let s:URI = vital#vital#import('VS.LSP.URI')
+
+Describe vital#__vital__#VS#LSP#URI
+
+  Before each
+    call s:URI.is_windows(v:false)
+    call s:URI.clear()
+  End
+
+  It should encode/decode mltibyte
+    call s:check({
+    \   '/path/to/あ': 'file:///path/to/%E3%81%82',
+    \   '/path/to/aA0-._~/a': 'file:///path/to/aA0-._~/a',
+    \ })
+  End
+
+  It should encode/decode windows
+    call s:URI.is_windows(v:true)
+    call s:check({
+    \   'c:\\win\\path': 'file:///c%3A/win/path',
+    \   'C:\\win\\path': 'file:///c%3A/win/path',
+    \ })
+  End
+
+End
+
+function! s:check(tests) abort
+  for [l:path, l:uri] in items(a:tests)
+    call s:expect(s:URI.encode(l:path)).to_equal(l:uri)
+  endfor
+endfunction
+
