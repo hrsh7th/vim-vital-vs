@@ -98,8 +98,7 @@ function! s:_normalize(bufnr, text_edits) abort
   let l:text_edits = type(a:text_edits) == type([]) ? a:text_edits : [a:text_edits]
   let l:text_edits = s:_range(l:text_edits)
   let l:text_edits = sort(l:text_edits, function('s:_compare'))
-  let l:text_edits = s:_check(l:text_edits)
-  let l:text_edits =  reverse(l:text_edits)
+  let l:text_edits = reverse(l:text_edits)
   return s:_fix_text_edits(a:bufnr, l:text_edits)
 endfunction
 
@@ -121,25 +120,6 @@ function! s:_range(text_edits) abort
     let l:text_edits += [l:text_edit]
   endfor
   return l:text_edits
-endfunction
-
-"
-" _check
-"
-function! s:_check(text_edits) abort
-  if len(a:text_edits) > 1
-    let l:range = a:text_edits[0].range
-    for l:text_edit in a:text_edits[1 : -1]
-      if l:range.end.line > l:text_edit.range.start.line || (
-      \   l:range.end.line == l:text_edit.range.start.line &&
-      \   l:range.end.character > l:text_edit.range.start.character
-      \ )
-        echomsg 'VS.LSP.TextEdit: range overlapped.'
-      endif
-      let l:range = l:text_edit.range
-    endfor
-  endif
-  return a:text_edits
 endfunction
 
 "
