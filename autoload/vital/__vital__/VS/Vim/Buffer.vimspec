@@ -1,0 +1,25 @@
+let s:expect = themis#helper('expect')
+let s:Buffer = vital#vital#import('VS.Vim.Buffer')
+
+Describe vital#__vital__#VS#Vim#Buffer
+
+  Describe #get_line_count
+
+    It should return current buffer's line count
+      enew!
+      let l:bufnr = bufnr('%')
+      call setbufline(l:bufnr, 1, ['a', 'b', 'c'])
+      call s:expect(s:Buffer.get_line_count(l:bufnr)).to_equal(3)
+    End
+
+    It should return external buffer's line count
+      let l:bufnr = bufnr('dummy', v:true)
+      call bufload(l:bufnr)
+      call setbufline(l:bufnr, 1, ['a', 'b', 'c'])
+      call s:expect(s:Buffer.get_line_count(l:bufnr)).to_equal(3)
+    End
+
+  End
+
+End
+
