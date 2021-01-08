@@ -3,6 +3,8 @@ let s:Position = vital#vital#import('VS.LSP.Position')
 let s:TextEdit = vital#vital#import('VS.LSP.TextEdit')
 let s:TextMark = vital#vital#import('VS.Vim.Buffer.TextMark')
 
+let s:TEXT_MARK_ID = 'test'
+
 let s:mark1 = {
 \   'start_pos': [2, 1],
 \   'end_pos': [3, 1],
@@ -29,25 +31,37 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
   Describe #set
 
     It should set extmarks
-      call s:TextMark.set('%', 'highlights', [s:mark1, s:mark2])
+      call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2])
     End
 
   End
 
   Describe #get
 
-    It should get extmarks
-      call s:TextMark.set('%', 'highlights', [s:mark1, s:mark2])
-      let l:marks = s:TextMark.get('%', 'highlights')
+    It should return all extmarks
+      call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2])
+      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID)
       call s:expect(l:marks).to_equal([s:mark1, s:mark2])
     End
 
-    It should get extmarks with modification
-      call s:TextMark.set('%', 'highlights', [s:mark1, s:mark2])
-      let l:marks = s:TextMark.get('%', 'highlights')
+    It should return specific extmarks
+      call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2])
+      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [2, 0])
+      call s:expect(l:marks).to_equal([])
+      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [2, 1])
+      call s:expect(l:marks).to_equal([s:mark1])
+      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [3, 1])
+      call s:expect(l:marks).to_equal([s:mark1, s:mark2])
+      " "let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [3, 2])
+      " "call s:expect(l:marks).to_equal([s:mark2])
+    End
+
+    It should return modified extmarks
+      call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2])
+      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID)
       call s:expect(l:marks).to_equal([s:mark1, s:mark2])
       call append(0, ['---'])
-      let l:marks = s:TextMark.get('%', 'highlights')
+      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID)
 
       let l:expects = deepcopy([s:mark1, s:mark2])
       for l:mark in l:expects
@@ -62,11 +76,11 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
   Describe #clear
 
     It should clear extmarks
-      call s:TextMark.set('%', 'highlights', [s:mark1, s:mark2])
-      let l:marks = s:TextMark.get('%', 'highlights')
+      call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2])
+      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID)
       call s:expect(l:marks).to_equal([s:mark1, s:mark2])
-      call s:TextMark.clear('%', 'highlights')
-      let l:marks = s:TextMark.get('%', 'highlights')
+      call s:TextMark.clear('%', s:TEXT_MARK_ID)
+      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID)
       call s:expect(l:marks).to_equal([])
     End
 
@@ -80,11 +94,11 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \   'start_pos': [2, 2],
       \   'end_pos': [2, 3],
       \ }
-      call s:TextMark.set('%', 'test', [l:mark])
-      call s:expect(s:TextMark.get('%', 'test')).to_equal([l:mark])
+      call s:TextMark.set('%', s:TEXT_MARK_ID, [l:mark])
+      call s:expect(s:TextMark.get('%', s:TEXT_MARK_ID)).to_equal([l:mark])
 
       " f'o'o -> f''o
-      call s:check(s:TextMark.get('%', 'test'), [{
+      call s:check(s:TextMark.get('%', s:TEXT_MARK_ID), [{
       \   'start': [1, 1],
       \   'end': [1, 2],
       \   'text': ''
@@ -94,7 +108,7 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \ }])
 
       " f''o -> f'bar'o
-      call s:check(s:TextMark.get('%', 'test'), [{
+      call s:check(s:TextMark.get('%', s:TEXT_MARK_ID), [{
       \   'start': [1, 1],
       \   'end': [1, 1],
       \   'text': 'bar'
@@ -104,7 +118,7 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \ }])
 
       " f'bar'o -> ''
-      call s:check(s:TextMark.get('%', 'test'), [{
+      call s:check(s:TextMark.get('%', s:TEXT_MARK_ID), [{
       \   'start': [1, 0],
       \   'end': [1, 5],
       \   'text': ''
@@ -114,7 +128,7 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \ }])
 
       " '' -> ''
-      call s:check(s:TextMark.get('%', 'test'), [{
+      call s:check(s:TextMark.get('%', s:TEXT_MARK_ID), [{
       \   'start': [1, 0],
       \   'end': [1, 0],
       \   'text': ''
@@ -124,7 +138,7 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \ }])
 
       " '' -> 'b'
-      call s:check(s:TextMark.get('%', 'test'), [{
+      call s:check(s:TextMark.get('%', s:TEXT_MARK_ID), [{
       \   'start': [1, 0],
       \   'end': [1, 0],
       \   'text': 'b'
@@ -134,7 +148,7 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \ }])
 
       " 'b' -> 'bar' ← It can't pass on nvim_buf_set_extmark. We should wait for nvim_buf_set_text's gravity.
-      " "call s:check(s:TextMark.get('%', 'test'), [{
+      " "call s:check(s:TextMark.get('%', s:TEXT_MARK_ID), [{
       " "\   'start': [1, 1],
       " "\   'end': [1, 1],
       " "\   'text': 'ar'
@@ -146,7 +160,7 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       " 'b' -> ''
       call cursor([0, 0])
       call feedkeys('diw', 'nxt')
-      call s:expect(s:TextMark.get('%', 'test')).to_equal([{
+      call s:expect(s:TextMark.get('%', s:TEXT_MARK_ID)).to_equal([{
       \   'start_pos': [2, 1],
       \   'end_pos': [2, 2],
       \ }])
@@ -159,9 +173,9 @@ End
 function! s:check(marks, edits, expected_marks) abort
   let l:buffer = getline('^', '$')
   %delete _ | call setline(1, l:buffer)
-  call s:TextMark.clear('%', 'test')
-  call s:TextMark.set('%', 'test', deepcopy(a:marks))
-  call s:expect(s:TextMark.get('%', 'test')).to_equal(a:marks)
+  call s:TextMark.clear('%', s:TEXT_MARK_ID)
+  call s:TextMark.set('%', s:TEXT_MARK_ID, deepcopy(a:marks))
+  call s:expect(s:TextMark.get('%', s:TEXT_MARK_ID)).to_equal(a:marks)
 
   call s:TextEdit.apply('%', map(deepcopy(a:edits), { _, e -> {
   \   'range': {
@@ -171,6 +185,6 @@ function! s:check(marks, edits, expected_marks) abort
   \   'newText': e.text,
   \ } }))
 
-  call s:expect(s:TextMark.get('%', 'test')).to_equal(a:expected_marks)
+  call s:expect(s:TextMark.get('%', s:TEXT_MARK_ID)).to_equal(a:expected_marks)
 endfunction
 
