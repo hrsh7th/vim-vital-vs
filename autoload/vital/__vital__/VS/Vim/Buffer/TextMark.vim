@@ -1,5 +1,8 @@
 let s:namespace = {}
-let s:prop_type = {}
+let s:prop_id = 0
+let s:prop_priority = 0
+let s:prop_types = {}
+let s:prop_cache = {} " { ['ns'] => [...ids] }
 
 "
 " is_available
@@ -8,52 +11,52 @@ function! s:is_available() abort
   if has('nvim')
     return exists('*nvim_buf_set_text')
   else
-    return exists('*prop_type_add') && exists('*prop_add')
+    return exists('*prop_type_add') && exists('*prop_add') && exists('*prop_find') && exists('*prop_list')
   endif
 endfunction
 
 "
 " @param {number} bufnr
-" @param {string} id
+" @param {string} ns
 " @param {array} marks
 " @param {[number, number]} marks[number].start_pos
 " @param {[number, number]} marks[number].end_pos
 " @param {string?}          marks[number].highlight
 "
-function! s:set(bufnr, id, marks) abort
-  call s:_set(a:bufnr, a:id, a:marks)
+function! s:set(bufnr, ns, marks) abort
+  call s:_set(bufnr(a:bufnr), a:ns, a:marks)
 endfunction
 
 "
 " get
 "
 " @param {number} bufnr
-" @param {string} id
+" @param {string} ns
 " @param {[number, number]?} pos
 " @returns {array}
 "
-function! s:get(bufnr, id, ...) abort
+function! s:get(bufnr, ns, ...) abort
   let l:pos = get(a:000, 0, [])
-  return s:_get(a:bufnr, a:id, l:pos)
+  return s:_get(bufnr(a:bufnr), a:ns, l:pos)
 endfunction
 
 "
 " clear
 "
 " @param {number} bufnr
-" @param {string} id
+" @param {string} ns
 "
-function! s:clear(bufnr, id) abort
-  return s:_clear(a:bufnr, a:id)
+function! s:clear(bufnr, ns) abort
+  return s:_clear(bufnr(a:bufnr), a:ns)
 endfunction
 
-"
-" set
-"
 if has('nvim')
-  function! s:_set(bufnr, id, marks) abort
-    if !has_key(s:namespace, a:id)
-      let s:namespace[a:id] = nvim_create_namespace(a:id)
+  "
+  " set
+  "
+  function! s:_set(bufnr, ns, marks) abort
+    if !has_key(s:namespace, a:ns)
+      let s:namespace[a:ns] = nvim_create_namespace(a:ns)
     endif
     for l:mark in a:marks
       let l:opts = {
@@ -64,56 +67,27 @@ if has('nvim')
         let l:opts.hl_group = l:mark.highlight
       endif
       call nvim_buf_set_extmark(
-      \   bufnr(a:bufnr),
-      \   s:namespace[a:id],
+      \   a:bufnr,
+      \   s:namespace[a:ns],
       \   l:mark.start_pos[0] - 1,
       \   l:mark.start_pos[1] - 1,
       \   l:opts
       \ )
     endfor
   endfunction
-else
-  function! s:_set(bufnr, id, marks) abort
-    for l:mark in a:marks
-      let l:type = s:_create_name(l:mark)
-      if !has_key(s:prop_type, l:type)
-        let s:prop_type[l:type] = s:_create_opts(l:mark)
-        call prop_type_add(l:type, s:prop_type[l:type])
-      endif
-      call prop_add(l:mark.start_pos[0], l:mark.start_pos[1], {
-      \   'id': a:id,
-      \   'bufnr': a:bufnr,
-      \   'end_lnum': l:mark.end_pos[0],
-      \   'end_col': l:mark.end_pos[1],
-      \   'type': l:type,
-      \ })
-    endfor
-  endfunction
-  function! s:_create_name(mark) abort
-    return printf('VS.Vim.Buffer.TextMark: %s', get(a:mark, 'highlight', ''))
-  endfunction
-  function! s:_create_opts(mark) abort
-    let l:type = { 'start_incl': v:true, 'end_incl': v:true, }
-    if has_key(a:mark, 'highlight')
-      let l:type.highlight = a:mark.highlight
-    endif
-    return l:type
-  endfunction
-endif
 
-"
-" get
-"
-if has('nvim')
-  function! s:_get(bufnr, id, pos) abort
-    if !has_key(s:namespace, a:id)
+  "
+  " get
+  "
+  function! s:_get(bufnr, ns, pos) abort
+    if !has_key(s:namespace, a:ns)
       return []
     endif
-    let l:extmarks = nvim_buf_get_extmarks(bufnr(a:bufnr), s:namespace[a:id], 0, -1, { 'details': v:true })
+    let l:extmarks = nvim_buf_get_extmarks(a:bufnr, s:namespace[a:ns], 0, -1, { 'details': v:true })
     if !empty(a:pos)
       let l:marks = []
       for l:extmark in l:extmarks " TODO: efficiency.
-        let l:mark = s:from_extmark(l:extmark)
+        let l:mark = s:_from_extmark(l:extmark)
         let l:contains = v:true
         let l:contains = l:contains && l:mark.start_pos[0] < a:pos[0] || (l:mark.start_pos[0] == a:pos[0] && l:mark.start_pos[1] <= a:pos[1])
         let l:contains = l:contains && l:mark.end_pos[0] > a:pos[0] || (l:mark.end_pos[0] == a:pos[0] && l:mark.end_pos[1] >= a:pos[1])
@@ -124,10 +98,24 @@ if has('nvim')
       endfor
       return l:marks
     else
-      return map(l:extmarks, 's:from_extmark(v:val)')
+      return map(l:extmarks, 's:_from_extmark(v:val)')
     endif
   endfunction
-  function! s:from_extmark(extmark) abort
+
+  "
+  " clear
+  "
+  function! s:_clear(bufnr, ns) abort
+    if !has_key(s:namespace, a:ns)
+      return
+    endif
+    call nvim_buf_clear_namespace(a:bufnr, s:namespace[a:ns], 0, -1)
+  endfunction
+
+  "
+  " from_extmark
+  "
+  function! s:_from_extmark(extmark) abort
     let l:mark = {}
     let l:mark.start_pos = [a:extmark[1] + 1, a:extmark[2] + 1]
     let l:mark.end_pos = [a:extmark[3].end_row + 1, a:extmark[3].end_col + 1]
@@ -145,80 +133,120 @@ if has('nvim')
     return l:mark
   endfunction
 else
-  function! s:_get(bufnr, id, pos) abort
-    let l:props = []
+  "
+  " set
+  "
+  function! s:_set(bufnr, ns, marks) abort
+    " preare namespace.
+    let l:cache = s:_ensure_cache(a:bufnr, a:ns)
+    for l:mark in a:marks
+      let s:prop_id += 1
+      call add(l:cache.ids, s:prop_id)
+      call prop_add(l:mark.start_pos[0], l:mark.start_pos[1], {
+      \   'id': s:prop_id,
+      \   'bufnr': a:bufnr,
+      \   'end_lnum': l:mark.end_pos[0],
+      \   'end_col': l:mark.end_pos[1],
+      \   'type': s:_ensure_type(l:mark)
+      \ })
+    endfor
+  endfunction
 
-    let l:prev = {}
-    let l:end_lnum = 1
-    let l:end_col = 0
-    while 1
-      let l:end_col += 1
-
-      let l:curr = prop_find({ 'bufnr': a:bufnr, 'id': a:id, 'lnum': l:end_lnum, 'col': l:end_col }, 'f')
-      if empty(l:curr)
-        break
-      endif
-
-      " ignore unmanaged text-prop.
-      if !has_key(s:prop_type, l:curr.type)
+  "
+  " get
+  "
+  function! s:_get(bufnr, ns, pos) abort
+    let l:marks = []
+    for l:prop_id in s:_ensure_cache(a:bufnr, a:ns).ids
+      let l:prop = prop_find({ 'id': l:prop_id, 'lnum': 1, 'col': 1, })
+      if empty(l:prop)
         continue
       endif
 
-      " skip for adjacent text-prop.
-      if l:prev == l:curr
-        continue
+      let l:start_lnum = l:prop.lnum
+      let l:start_col = l:prop.col
+      if l:prop.end
+        let l:end_lnum = l:start_lnum
+        let l:end_col = l:start_col + l:prop.length
+      else
+        let l:i = 1
+        while 1
+          let l:ends = filter(prop_list(l:start_lnum + l:i, { 'id': l:prop_id }), 'v:val.id == l:prop_id') " it seems vim's bug
+          if empty(l:ends)
+            let l:i += 1
+            continue
+          endif
+          let l:end = l:ends[0]
+          if !l:end.end
+            let l:i += 1
+            continue
+          endif
+          let l:end_lnum = l:start_lnum + l:i
+          let l:end_col = l:end.col + l:end.length
+          break
+        endwhile
       endif
-
-      let l:start_pos = [l:curr.lnum, l:curr.col]
-      let l:end_byte = line2byte(l:curr.lnum) + l:curr.col + l:curr.length - 1
-      let l:end_lnum = byte2line(l:end_byte)
-      let l:end_col = (l:end_byte - line2byte(l:end_lnum)) + 1
-      let l:end_pos = [l:end_lnum, l:end_col]
 
       " position check if specified.
       if !empty(a:pos)
-        if a:pos[0] < l:start_pos[0] || (a:pos[0] == l:start_pos[0] && a:pos[1] < l:start_pos[1])
-          break
-        endif
         let l:contains = v:true
-        let l:contains = l:contains && l:start_pos[0] < a:pos[0] || (l:start_pos[0] == a:pos[0] && l:start_pos[1] <= a:pos[1])
-        let l:contains = l:contains && l:end_pos[0] > a:pos[0] || (l:end_pos[0] == a:pos[0] && l:end_pos[1] >= a:pos[1])
+        let l:contains = l:contains && l:start_lnum < a:pos[0] || (l:start_lnum == a:pos[0] && l:start_col <= a:pos[1])
+        let l:contains = l:contains && l:end_lnum > a:pos[0] || (l:end_lnum == a:pos[0] && l:end_col >= a:pos[1])
         if !l:contains
           continue
         endif
       endif
 
-      if has_key(s:prop_type, l:curr.type)
-        let l:prop = {}
-        let l:prop.start_pos = l:start_pos
-        let l:prop.end_pos = l:end_pos
-        if has_key(s:prop_type[l:curr.type], 'highlight')
-          let l:prop.highlight = s:prop_type[l:curr.type].highlight
-        endif
-        call add(l:props, l:prop)
+      let l:mark = {}
+      let l:mark.start_pos = [l:start_lnum, l:start_col]
+      let l:mark.end_pos = [l:end_lnum, l:end_col]
+      if has_key(s:prop_types[l:prop.type], 'highlight')
+        let l:mark.highlight = s:prop_types[l:prop.type].highlight
       endif
-      let l:prev = l:curr
-    endwhile
-
-    return l:props
+      call add(l:marks, l:mark)
+    endfor
+    return l:marks
   endfunction
-  function! s:from_prop(prop) abort
-  endfunction
-endif
 
-"
-" clear
-"
-if has('nvim')
-  function! s:_clear(bufnr, id) abort
-    if !has_key(s:namespace, a:id)
-      return
+  "
+  " clear
+  "
+  function! s:_clear(bufnr, ns) abort
+    let l:cache = s:_ensure_cache(a:bufnr, a:ns)
+    for l:prop_id in l:cache.ids
+      call prop_remove({ 'bufnr': a:bufnr, 'id': l:prop_id })
+    endfor
+    let l:cache.ids = []
+  endfunction
+
+  "
+  " ensure_type
+  "
+  function! s:_ensure_type(mark) abort
+    let l:type = printf('VS.Vim.Buffer.TextMark: %s', get(a:mark, 'highlight', ''))
+    if !has_key(s:prop_types, l:type)
+      let s:prop_priority += 1
+      let s:prop_types[l:type] = {
+      \   'start_incl': v:true,
+      \   'end_incl': v:true,
+      \ }
+      if has_key(a:mark, 'highlight')
+        let s:prop_types[l:type].highlight = a:mark.highlight
+      endif
+      call prop_type_add(l:type, s:prop_types[l:type])
     endif
-    call nvim_buf_clear_namespace(bufnr(a:bufnr), s:namespace[a:id], 0, -1)
+    return l:type
   endfunction
-else
-  function! s:_clear(bufnr, id) abort
-    call prop_remove({ 'bufnr': a:bufnr, 'id': a:id, 'all': v:true })
+
+  "
+  " ensure_cache
+  "
+  function! s:_ensure_cache(bufnr, ns) abort
+    let l:key = printf('VS.Vim.Buffer.TextMark: %s: %s', a:bufnr, a:ns)
+    if !has_key(s:prop_cache, l:key)
+      let s:prop_cache[l:key] = { 'ids': [] }
+    endif
+    return s:prop_cache[l:key]
   endfunction
 endif
 

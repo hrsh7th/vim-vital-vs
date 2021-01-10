@@ -3,18 +3,28 @@ let s:Position = vital#vital#import('VS.LSP.Position')
 let s:TextEdit = vital#vital#import('VS.LSP.TextEdit')
 let s:TextMark = vital#vital#import('VS.Vim.Buffer.TextMark')
 
+if !s:TextMark.is_available()
+  finish
+endif
+
 let s:TEXT_MARK_ID = 'test'
 
 let s:mark1 = {
 \   'start_pos': [2, 1],
 \   'end_pos': [3, 1],
-\   'highlight': 'ErrorMsg'
+\   'highlight': 'ErrorMsg',
 \ }
 
 let s:mark2 = {
+\   'start_pos': [2, 2],
+\   'end_pos': [3, 2],
+\   'highlight': 'ErrorMsg',
+\ }
+
+let s:mark3 = {
 \   'start_pos': [3, 1],
 \   'end_pos': [4, 1],
-\   'highlight': 'ErrorMsg'
+\   'highlight': 'ErrorMsg',
 \ }
 
 Describe vital#__vital__#VS#Vim#Buffer#TextMark
@@ -31,7 +41,7 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
   Describe #set
 
     It should set extmarks
-      call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2])
+      call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2, s:mark3])
     End
 
   End
@@ -39,31 +49,37 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
   Describe #get
 
     It should return all extmarks
-      call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2])
+      call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2, s:mark3])
       let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID)
-      call s:expect(l:marks).to_equal([s:mark1, s:mark2])
+      call s:expect(l:marks).to_equal([s:mark1, s:mark2, s:mark3])
     End
 
     It should return specific extmarks
-      call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2])
+      call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2, s:mark3])
       let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [2, 0])
       call s:expect(l:marks).to_equal([])
       let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [2, 1])
       call s:expect(l:marks).to_equal([s:mark1])
-      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [3, 1])
+      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [2, 2])
       call s:expect(l:marks).to_equal([s:mark1, s:mark2])
-      " "let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [3, 2])
-      " "call s:expect(l:marks).to_equal([s:mark2])
+      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [3, 1])
+      call s:expect(l:marks).to_equal([s:mark1, s:mark2, s:mark3])
+      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [3, 2])
+      call s:expect(l:marks).to_equal([s:mark2, s:mark3])
+      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [4, 1])
+      call s:expect(l:marks).to_equal([s:mark3])
+      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [4, 2])
+      call s:expect(l:marks).to_equal([])
     End
 
     It should return modified extmarks
-      call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2])
+      call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2, s:mark3])
       let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID)
-      call s:expect(l:marks).to_equal([s:mark1, s:mark2])
+      call s:expect(l:marks).to_equal([s:mark1, s:mark2, s:mark3])
       call append(0, ['---'])
       let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID)
 
-      let l:expects = deepcopy([s:mark1, s:mark2])
+      let l:expects = deepcopy([s:mark1, s:mark2, s:mark3])
       for l:mark in l:expects
         let l:mark.start_pos[0] += 1
         let l:mark.end_pos[0] += 1
