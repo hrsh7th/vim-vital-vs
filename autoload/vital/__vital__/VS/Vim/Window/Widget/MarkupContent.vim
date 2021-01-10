@@ -46,9 +46,7 @@ function! s:MarkupContent.new(args) abort
   call setbufvar(l:bufnr, '&bufhidden', 'hide')
   return extend(deepcopy(s:MarkupContent), {
   \   'bufnr': l:bufnr,
-  \   'window': s:FloatingWindow.new({
-  \     'scrollable': v:true,
-  \   }),
+  \   'window': s:FloatingWindow.new(),
   \   'minwidth': get(a:args, 'minwidth', -1),
   \   'maxwidth': get(a:args, 'maxwidth', -1),
   \   'minheight': get(a:args, 'minheight', -1),
@@ -72,7 +70,8 @@ function! s:MarkupContent.open(row, col, contents) abort
   \   'maxwidth': self.maxwidth,
   \   'minheight': self.minheight,
   \   'maxheight': self.maxheight,
-  \ }, self.bufnr)
+  \ }, a:contents)
+
   call self.window.open({
   \   'bufnr': self.bufnr,
   \   'row': a:row,
@@ -80,7 +79,15 @@ function! s:MarkupContent.open(row, col, contents) abort
   \   'width': l:size.width,
   \   'height': l:size.height,
   \ })
+  call s:Window.scrollable(self.window.win, v:true)
   call s:Window.do(self.window.win, { -> s:Markdown.apply() })
+endfunction
+
+"
+" close
+"
+function! s:MarkupContent.close() abort
+  call self.window.close()
 endfunction
 
 "

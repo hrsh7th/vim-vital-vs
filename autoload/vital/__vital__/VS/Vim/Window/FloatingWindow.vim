@@ -26,10 +26,9 @@ endfunction
 " @param {number} args.maxwidth
 " @param {number} args.minheight
 " @param {number} args.maxheight
-" @param {number} bufnr
+" @param {string[]} contents
 "
-function! s:get_size(args, bufnr) abort
-  let l:contents = getbufline(a:bufnr, '^', '$')
+function! s:get_size(args, contents) abort
   let l:maxwidth = get(a:args, 'maxwidth', -1)
   let l:minwidth = get(a:args, 'minwidth', -1)
   let l:maxheight = get(a:args, 'maxheight', -1)
@@ -37,15 +36,15 @@ function! s:get_size(args, bufnr) abort
 
   " width
   let l:width = 0
-  for l:content in l:contents
+  for l:content in a:contents
     let l:width = max([l:width, strdisplaywidth(l:content)])
   endfor
   let l:width = l:minwidth == -1 ? l:width : max([l:minwidth, l:width])
   let l:width = l:maxwidth == -1 ? l:width : min([l:maxwidth, l:width])
 
   " height
-  let l:height = len(l:contents)
-  for l:content in l:contents
+  let l:height = len(a:contents)
+  for l:content in a:contents
     let l:wrap = float2nr(ceil(strdisplaywidth(l:content) / str2float('' . l:width)))
     if l:wrap > 1
       let l:height += l:wrap - 1
