@@ -27,7 +27,7 @@ function! s:encode(path) abort
   let l:path = empty(l:path) ? getcwd() : l:path
   let l:path = s:_is_windows ? substitute(l:path, '\%(\\\\\|\\\)', '/', 'g') : l:path
   let l:path = s:_is_windows ? substitute(l:path, '^\(\w\)\ze:', '\=tolower(submatch(1))', 'g') : l:path
-  let l:path = s:_fullpath(l:path)
+  let l:path = s:_normalize(l:path)
   if has_key(s:encode_cache, l:path)
     return s:encode_cache[l:path]
   endif
@@ -62,10 +62,10 @@ function! s:_encode_char(char) abort
 endfunction
 
 "
-" _fullpath
+" _normalize
 "
-function! s:_fullpath(path) abort
-  let l:path = fnamemodify(a:path, ':p')
+function! s:_normalize(path) abort
+  let l:path = a:path
   let l:path = l:path[-1 : -1] ==# '/' ? l:path[0 : -2] : l:path
   let l:path = l:path[0 : 0] ==# '/' ? l:path : '/' . l:path
   return l:path
