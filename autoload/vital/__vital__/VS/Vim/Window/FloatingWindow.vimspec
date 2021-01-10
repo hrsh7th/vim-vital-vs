@@ -2,6 +2,10 @@ let s:expect = themis#helper('expect')
 let s:Window = vital#vital#import('VS.Vim.Window')
 let s:FloatingWindow = vital#vital#import('VS.Vim.Window.FloatingWindow')
 
+if !s:FloatingWindow.is_available()
+  finish
+endif
+
 Describe vital#__vital__#VS#Vim#Window#FloatingWindow
 
   Describe #is_visible

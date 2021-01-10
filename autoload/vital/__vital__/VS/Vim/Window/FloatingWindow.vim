@@ -16,6 +16,16 @@ endfunction
 let s:id = 0
 
 "
+" is_available
+"
+function! s:is_available() abort
+  if has('nvim')
+    return v:true
+  endif
+  return has('*popup_create') && has('*popup_hide') && has('*popup_move') && has('*popup_getpos')
+endfunction
+
+"
 " new
 "
 function! s:new() abort
