@@ -1,0 +1,11 @@
+let s:expect = themis#helper('expect')
+let s:MarkupContent = vital#vital#import('VS.Vim.Window.Widget.MarkupContent')
+
+if !s:MarkupContent.is_available()
+  finish
+endif
+
+Describe vital#__vital__#VS#Vim#Window#Widget#MarkupContent
+
+End
+

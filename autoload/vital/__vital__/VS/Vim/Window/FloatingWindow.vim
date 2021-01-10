@@ -1,3 +1,16 @@
+function! s:_vital_loaded(V) abort
+  let s:Window = a:V.import('VS.Vim.Window')
+endfunction
+
+function! s:_vital_depends() abort
+  return ['VS.Vim.Window']
+endfunction
+
+"
+" managed floating windows.
+"
+let s:floating_windows = {}
+
 "
 " is_available
 "
@@ -9,9 +22,43 @@ function! s:is_available() abort
 endfunction
 
 "
-" managed floating windows.
+" @param {number} args.minwidth
+" @param {number} args.maxwidth
+" @param {number} args.minheight
+" @param {number} args.maxheight
+" @param {number} bufnr
 "
-let s:floating_windows = {}
+function! s:get_size(args, bufnr) abort
+  let l:contents = getbufline(a:bufnr, '^', '$')
+  let l:maxwidth = get(a:args, 'maxwidth', -1)
+  let l:minwidth = get(a:args, 'minwidth', -1)
+  let l:maxheight = get(a:args, 'maxheight', -1)
+  let l:minheight = get(a:args, 'minheight', -1)
+
+  " width
+  let l:width = 0
+  for l:content in l:contents
+    let l:width = max([l:width, strdisplaywidth(l:content)])
+  endfor
+  let l:width = l:minwidth == -1 ? l:width : max([l:minwidth, l:width])
+  let l:width = l:maxwidth == -1 ? l:width : min([l:maxwidth, l:width])
+
+  " height
+  let l:height = len(l:contents)
+  for l:content in l:contents
+    let l:wrap = float2nr(ceil(strdisplaywidth(l:content) / str2float('' . l:width)))
+    if l:wrap > 1
+      let l:height += l:wrap - 1
+    endif
+  endfor
+  let l:height = l:minheight == -1 ? l:height : max([l:minheight, l:height])
+  let l:height = l:maxheight == -1 ? l:height : min([l:maxheight, l:height])
+
+  return {
+  \   'width': max([1, l:width]),
+  \   'height': max([1, l:height]),
+  \ }
+endfunction
 
 "
 " new
@@ -50,12 +97,14 @@ let s:FloatingWindow = {}
 "
 " new
 "
+" @param {boolean}   args.scrollable
 " @param {function?} args.on_opened
 " @param {function?} args.on_closed
 "
 function! s:FloatingWindow.new(args) abort
   return extend(deepcopy(s:FloatingWindow), {
   \   'win': v:null,
+  \   'scrollable': get(a:args, 'scrollable', v:false),
   \   'on_opened': get(a:args, 'on_opened', { -> {} }),
   \   'on_closed': get(a:args, 'on_closed', { -> {} }),
   \ })
@@ -64,12 +113,12 @@ endfunction
 "
 " open
 "
-" @param {number} args.row 0-based indexing
-" @param {number} args.col 0-based indexing
-" @param {number} args.width
-" @param {number} args.height
-" @param {string} args.winhl
-" @param {number} args.bufnr
+" @param {number}  args.row 0-based indexing
+" @param {number}  args.col 0-based indexing
+" @param {number}  args.width
+" @param {number}  args.height
+" @param {string}  args.winhl
+" @param {number}  args.bufnr
 "
 function! s:FloatingWindow.open(args) abort
   let l:style = {
@@ -83,6 +132,7 @@ function! s:FloatingWindow.open(args) abort
     call s:_move(self.win, l:style)
   else
     let self.win = s:_open(a:args.bufnr, l:style)
+    call s:Window.set_var(self.win, 'scrollable', self.scrollable)
     if has('nvim')
       call setwinvar(self.win, '&winhighlight', get(a:args, 'winhl', ''))
     endif
