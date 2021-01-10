@@ -1,0 +1,74 @@
+let s:expect = themis#helper('expect')
+let s:Markdown = vital#vital#import('VS.Vim.Syntax.Markdown')
+
+Describe vital#__vital__#VS#Vim#Syntax#Markdown
+
+  Before each
+    enew!
+  End
+
+  After each
+    bdelete!
+  End
+
+  Describe #apply
+
+    It should apply fenced code block
+      call setline(1, [
+      \   'Header',
+      \   '===',
+      \   '',
+      \   '```typescript',
+      \   'console.log("Hello, world!");',
+      \   '```',
+      \ ])
+      call s:Markdown.apply()
+
+      call s:expect(s:syntax(1, 1)).to_equal('markdownH1')
+      call s:expect(s:syntax(5, 13)).to_equal('typescriptString')
+    End
+
+    It should apply fenced code block with g:markdown_fenced_languages
+      call setline(1, [
+      \   'Header',
+      \   '===',
+      \   '',
+      \   '```ts',
+      \   'console.log("Hello, world!");',
+      \   '```',
+      \ ])
+
+      let g:markdown_fenced_languages = ['ts=typescript']
+      call s:Markdown.apply()
+      let g:markdown_fenced_languages = []
+
+      call s:expect(s:syntax(1, 1)).to_equal('markdownH1')
+      call s:expect(s:syntax(5, 13)).to_equal('typescriptString')
+    End
+
+    It should apply fenced code block with specified filetype map
+      call setline(1, [
+      \   'Header',
+      \   '===',
+      \   '',
+      \   '```ts',
+      \   'console.log("Hello, world!");',
+      \   '```',
+      \ ])
+
+      call s:Markdown.apply({
+      \   'ts': 'typescript',
+      \ })
+
+      call s:expect(s:syntax(1, 1)).to_equal('markdownH1')
+      call s:expect(s:syntax(5, 13)).to_equal('typescriptString')
+    End
+
+  End
+
+End
+
+function! s:syntax(lnum, col) abort
+  return synIDattr(synID(a:lnum, a:col, v:true), "name")
+endfunction
+
