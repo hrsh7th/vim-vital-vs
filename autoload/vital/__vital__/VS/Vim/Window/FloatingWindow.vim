@@ -85,7 +85,7 @@ endfunction
 "
 function! s:_notify_closed() abort
   for [l:win, l:floating_window] in items(s:floating_windows)
-    if win_id2win(l:win) == 0
+    if winheight(l:win) == -1
       call l:floating_window.on_closed(l:floating_window)
       unlet s:floating_windows[l:win]
     endif
@@ -97,14 +97,12 @@ let s:FloatingWindow = {}
 "
 " new
 "
-" @param {boolean}   args.scrollable
 " @param {function?} args.on_opened
 " @param {function?} args.on_closed
 "
 function! s:FloatingWindow.new(args) abort
   return extend(deepcopy(s:FloatingWindow), {
   \   'win': v:null,
-  \   'scrollable': get(a:args, 'scrollable', v:false),
   \   'on_opened': get(a:args, 'on_opened', { -> {} }),
   \   'on_closed': get(a:args, 'on_closed', { -> {} }),
   \ })
@@ -117,7 +115,6 @@ endfunction
 " @param {number}  args.col 0-based indexing
 " @param {number}  args.width
 " @param {number}  args.height
-" @param {string}  args.winhl
 " @param {number}  args.bufnr
 "
 function! s:FloatingWindow.open(args) abort
@@ -131,11 +128,7 @@ function! s:FloatingWindow.open(args) abort
   if self.is_visible()
     call s:_move(self.win, l:style)
   else
-    let self.win = s:_open(a:args.bufnr, l:style)
-    call s:Window.set_var(self.win, 'scrollable', self.scrollable)
-    if has('nvim')
-      call setwinvar(self.win, '&winhighlight', get(a:args, 'winhl', ''))
-    endif
+    let self.win = s:_open(a:args.bufnr, l:style, { -> self.on_closed(self) })
     call s:_notify_opened(self.win, self)
   endif
 endfunction
@@ -169,12 +162,12 @@ endfunction
 " open
 "
 if has('nvim')
-  function! s:_open(buf, style) abort
+  function! s:_open(buf, style, callback) abort
     return nvim_open_win(a:buf, v:false, s:_style(a:style))
   endfunction
 else
-  function! s:_open(buf, style) abort
-    return popup_create(a:buf, s:_style(a:style))
+  function! s:_open(buf, style, callback) abort
+    return popup_create(a:buf, extend(s:_style(a:style), { 'callback': a:callback }, 'force'))
   endfunction
 endif
 
@@ -187,7 +180,7 @@ if has('nvim')
   endfunction
 else
   function! s:_close(win) abort
-    call popup_hide(a:win)
+    call popup_close(a:win)
   endfunction
 endif
 
@@ -226,7 +219,7 @@ if has('nvim')
   endfunction
 else
   function! s:_exists(win) abort
-    return type(a:win) == type(0) && !empty(popup_getpos(a:win))
+    return type(a:win) == type(0) && winheight(a:win) != -1
   endfunction
 endif
 
