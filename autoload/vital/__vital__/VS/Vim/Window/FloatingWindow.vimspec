@@ -15,12 +15,54 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
       call l:win.open({
       \   'row': 1,
       \   'col': 1,
-      \   'filetype': 'text',
-      \   'contents': ['Hello, World!'],
+      \   'width': 10,
+      \   'height': 10,
+      \   'bufnr': bufnr('test', v:true),
       \ })
       call s:expect(l:win.is_visible()).to_equal(v:true)
       call l:win.close()
       call s:expect(l:win.is_visible()).to_equal(v:false)
+    End
+  End
+
+  Describe #on_close
+    It should callback on window was method
+      let l:bufnr = bufnr('test', v:true)
+      let s:closed = v:false
+      let l:win = s:FloatingWindow.new({
+      \   'on_closed': { win -> execute('let s:closed = v:true') }
+      \ })
+      call l:win.open({
+      \   'row': 1,
+      \   'col': 1,
+      \   'width': 10,
+      \   'height': 10,
+      \   'bufnr': l:bufnr,
+      \ })
+      call l:win.close()
+      call s:expect(s:closed).to_equal(v:true)
+    End
+    It should callback on window was closed by command (nvim only)
+      if !has('nvim')
+        return
+      endif
+
+      let l:bufnr = bufnr('test', v:true)
+      let s:closed = v:false
+      let l:win = s:FloatingWindow.new({
+      \   'on_closed': { win -> execute('let s:closed = v:true') }
+      \ })
+      call l:win.open({
+      \   'row': 1,
+      \   'col': 1,
+      \   'width': 10,
+      \   'height': 10,
+      \   'bufnr': l:bufnr,
+      \ })
+      call l:win.enter()
+      call s:expect(bufnr('%')).to_equal(l:bufnr)
+      call execute('close')
+      call s:expect(s:closed).to_equal(v:true)
     End
   End
 

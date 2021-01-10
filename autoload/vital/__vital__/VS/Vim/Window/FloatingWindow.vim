@@ -1,35 +1,48 @@
 "
-" _vital_loaded
-"
-function! s:_vital_loaded(V) abort
-  let s:Window = a:V.import('VS.Vim.Window')
-  let s:Markdown = a:V.import('VS.Vim.Syntax.Markdown')
-endfunction
-
-"
-" _vital_depends
-"
-function! s:_vital_depends() abort
-  return ['VS.Vim.Window', 'VS.Vim.Syntax.Markdown']
-endfunction
-
-let s:id = 0
-
-"
 " is_available
 "
 function! s:is_available() abort
   if has('nvim')
     return v:true
   endif
-  return has('*popup_create') && has('*popup_hide') && has('*popup_move') && has('*popup_getpos')
+  return exists('*popup_create') && exists('*popup_hide') && exists('*popup_move') && exists('*popup_getpos')
 endfunction
+
+"
+" managed floating windows.
+"
+let s:floating_windows = {}
 
 "
 " new
 "
-function! s:new() abort
-  return s:FloatingWindow.new()
+function! s:new(...) abort
+  call s:_init()
+
+  return s:FloatingWindow.new(get(a:000, 0, {}))
+endfunction
+
+"
+" _notify_opened
+"
+" @param {number} win
+" @param {VS.Vim.Window.FloatingWindow} floating_window
+"
+function! s:_notify_opened(win, floating_window) abort
+  let s:floating_windows[a:win] = a:floating_window
+  call a:floating_window.on_opened(a:floating_window)
+endfunction
+
+"
+" _notify_closed
+"
+function! s:_notify_closed() abort
+  for [l:win, l:floating_window] in items(s:floating_windows)
+    if win_id2win(l:win) == 0
+      call l:floating_window.on_closed(l:floating_window)
+      unlet s:floating_windows[l:win]
+    endif
+  endfor
 endfunction
 
 let s:FloatingWindow = {}
@@ -37,60 +50,44 @@ let s:FloatingWindow = {}
 "
 " new
 "
-function! s:FloatingWindow.new() abort
-  let s:id += 1
-
-  let l:buf = bufnr(printf('VS.Vim.Window.FloatingWindow-%s', s:id), v:true)
-  call setbufvar(l:buf, '&buflisted', 0)
-  call setbufvar(l:buf, '&modeline', 0)
-  call setbufvar(l:buf, '&buftype', 'nofile')
-  call setbufvar(l:buf, '&bufhidden', 'hide')
-
+" @param {function?} args.on_opened
+" @param {function?} args.on_closed
+"
+function! s:FloatingWindow.new(args) abort
   return extend(deepcopy(s:FloatingWindow), {
-  \   'id': s:id,
-  \   'buf': l:buf,
   \   'win': v:null,
+  \   'on_opened': get(a:args, 'on_opened', { -> {} }),
+  \   'on_closed': get(a:args, 'on_closed', { -> {} }),
   \ })
 endfunction
 
 "
 " open
 "
-" @param {number} args.row
-" @param {number} args.col
-" @param {string} args.filetype
-" @param {string[]} args.contents
-" @param {number?} args.maxwidth
-" @param {number?} args.minwidth
-" @param {number?} args.maxheight
-" @param {number?} args.minheight
+" @param {number} args.row 0-based indexing
+" @param {number} args.col 0-based indexing
+" @param {number} args.width
+" @param {number} args.height
 " @param {string} args.winhl
+" @param {number} args.bufnr
 "
 function! s:FloatingWindow.open(args) abort
-  let a:args.contents = type(a:args.contents) == type('')
-  \   ? split(a:args.contents, "\n", v:true)
-  \   : a:args.contents
-
-  let l:size = self.get_size(a:args)
   let l:style = {
     \   'row': a:args.row,
     \   'col': a:args.col,
-    \   'width': l:size.width,
-    \   'height': l:size.height,
+    \   'width': a:args.width,
+    \   'height': a:args.height,
     \ }
 
   if self.is_visible()
     call s:_move(self.win, l:style)
   else
-    let self.win = s:_open(self.buf, l:style)
-    call setwinvar(self.win, '&conceallevel', 2)
-    call setwinvar(self.win, '&wrap', 1)
+    let self.win = s:_open(a:args.bufnr, l:style)
     if has('nvim')
       call setwinvar(self.win, '&winhighlight', get(a:args, 'winhl', ''))
     endif
+    call s:_notify_opened(self.win, self)
   endif
-
-  call self.set_contents(a:args.filetype, a:args.contents)
 endfunction
 
 "
@@ -99,6 +96,7 @@ endfunction
 function! s:FloatingWindow.close() abort
   if self.is_visible()
     call s:_close(self.win)
+    call s:_notify_closed()
   endif
   let self.win = v:null
 endfunction
@@ -115,58 +113,6 @@ endfunction
 "
 function! s:FloatingWindow.is_visible() abort
   return s:_exists(self.win) ? v:true : v:false
-endfunction
-
-"
-" get_size
-"
-function! s:FloatingWindow.get_size(args) abort
-  let a:args.contents = type(a:args.contents) == type('')
-  \   ? split(a:args.contents, "\n", v:true)
-  \   : a:args.contents
-
-  let l:maxwidth = get(a:args, 'maxwidth', -1)
-  let l:minwidth = get(a:args, 'minwidth', -1)
-  let l:maxheight = get(a:args, 'maxheight', -1)
-  let l:minheight = get(a:args, 'minheight', -1)
-
-  " width
-  let l:width = 0
-  for l:content in a:args.contents
-    let l:width = max([l:width, strdisplaywidth(l:content)])
-  endfor
-  let l:width = l:minwidth == -1 ? l:width : max([l:minwidth, l:width])
-  let l:width = l:maxwidth == -1 ? l:width : min([l:maxwidth, l:width])
-
-  " height
-  let l:height = len(a:args.contents)
-  for l:content in a:args.contents
-    let l:wrap = float2nr(ceil(strdisplaywidth(l:content) / str2float('' . l:width)))
-    if l:wrap > 1
-      let l:height += l:wrap - 1
-    endif
-  endfor
-  let l:height = l:minheight == -1 ? l:height : max([l:minheight, l:height])
-  let l:height = l:maxheight == -1 ? l:height : min([l:maxheight, l:height])
-
-  return {
-  \   'width': max([1, l:width]),
-  \   'height': max([1, l:height]),
-  \ }
-endfunction
-
-"
-" set_contents
-"
-function! s:FloatingWindow.set_contents(filetype, contents) abort
-  call deletebufline(self.buf, '^', '$')
-  call setbufline(self.buf, 1, a:contents)
-
-  if a:filetype ==# 'markdown'
-    call s:Window.do(self.win, { -> s:Markdown.apply(join(a:contents, "\n")) })
-  else
-    call setbufvar(self.buf, '&filetype', a:filetype)
-  endif
 endfunction
 
 "
@@ -265,4 +211,19 @@ else
     \ }
   endfunction
 endif
+
+"
+" init
+"
+let s:has_init = v:false
+function! s:_init() abort
+  if s:has_init
+    return
+  endif
+  let s:has_init = v:true
+  augroup printf('<sfile>')
+    autocmd!
+    autocmd WinEnter * call <SID>_notify_closed()
+  augroup END
+endfunction
 
