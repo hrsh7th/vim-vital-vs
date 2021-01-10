@@ -43,12 +43,9 @@ function! s:get_size(args, contents) abort
   let l:width = l:maxwidth == -1 ? l:width : min([l:maxwidth, l:width])
 
   " height
-  let l:height = len(a:contents)
+  let l:height = 0
   for l:content in a:contents
-    let l:wrap = float2nr(ceil(strdisplaywidth(l:content) / str2float('' . l:width)))
-    if l:wrap > 1
-      let l:height += l:wrap - 1
-    endif
+    let l:height += max([1, float2nr(ceil(strdisplaywidth(l:content) / str2float('' . l:width)))])
   endfor
   let l:height = l:minheight == -1 ? l:height : max([l:minheight, l:height])
   let l:height = l:maxheight == -1 ? l:height : min([l:maxheight, l:height])
@@ -162,11 +159,16 @@ endfunction
 "
 if has('nvim')
   function! s:_open(buf, style, callback) abort
-    return nvim_open_win(a:buf, v:false, s:_style(a:style))
+    let l:win = nvim_open_win(a:buf, v:false, s:_style(a:style))
+    call nvim_win_set_cursor(l:win, [1, 1])
+    return l:win
   endfunction
 else
   function! s:_open(buf, style, callback) abort
-    return popup_create(a:buf, extend(s:_style(a:style), { 'callback': a:callback }, 'force'))
+    return popup_create(a:buf, extend(s:_style(a:style), {
+    \  'callback': a:callback,
+    \  'firstline': 1,
+    \ }, 'force'))
   endfunction
 endif
 

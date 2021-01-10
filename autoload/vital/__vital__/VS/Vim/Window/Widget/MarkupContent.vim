@@ -44,6 +44,7 @@ function! s:MarkupContent.new(args) abort
   call setbufvar(l:bufnr, '&modeline', 0)
   call setbufvar(l:bufnr, '&buftype', 'nofile')
   call setbufvar(l:bufnr, '&bufhidden', 'hide')
+  call setbufvar(l:bufnr, '&textwidth', 0)
   return extend(deepcopy(s:MarkupContent), {
   \   'bufnr': l:bufnr,
   \   'window': s:FloatingWindow.new(),
@@ -79,6 +80,8 @@ function! s:MarkupContent.open(row, col, contents) abort
   \   'width': l:size.width,
   \   'height': l:size.height,
   \ })
+  call setwinvar(self.window.win, '&wrap', 1)
+  call setwinvar(self.window.win, '&conceallevel', 2)
   call s:Window.scrollable(self.window.win, v:true)
   call s:Window.do(self.window.win, { -> s:Markdown.apply() })
 endfunction
