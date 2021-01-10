@@ -1,11 +1,3 @@
-function! s:_vital_loaded(V) abort
-  let s:Buffer = a:V.import('VS.Vim.Buffer')
-endfunction
-
-function! s:_vital_depends() abort
-  return ['VS.Vim.Buffer']
-endfunction
-
 let s:Do = { -> {} }
 
 "
