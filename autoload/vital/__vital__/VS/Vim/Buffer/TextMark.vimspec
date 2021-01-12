@@ -50,34 +50,34 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
 
     It should return all extmarks
       call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2, s:mark3])
-      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID)
+      let l:marks = s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID))
       call s:expect(l:marks).to_equal([s:mark1, s:mark2, s:mark3])
     End
 
     It should return specific extmarks
       call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2, s:mark3])
-      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [2, 0])
+      let l:marks = s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID, [2, 0]))
       call s:expect(l:marks).to_equal([])
-      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [2, 1])
+      let l:marks = s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID, [2, 1]))
       call s:expect(l:marks).to_equal([s:mark1])
-      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [2, 2])
+      let l:marks = s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID, [2, 2]))
       call s:expect(l:marks).to_equal([s:mark1, s:mark2])
-      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [3, 1])
+      let l:marks = s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID, [3, 1]))
       call s:expect(l:marks).to_equal([s:mark1, s:mark2, s:mark3])
-      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [3, 2])
+      let l:marks = s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID, [3, 2]))
       call s:expect(l:marks).to_equal([s:mark2, s:mark3])
-      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [4, 1])
+      let l:marks = s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID, [4, 1]))
       call s:expect(l:marks).to_equal([s:mark3])
-      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID, [4, 2])
+      let l:marks = s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID, [4, 2]))
       call s:expect(l:marks).to_equal([])
     End
 
     It should return modified extmarks
       call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2, s:mark3])
-      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID)
+      let l:marks = s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID))
       call s:expect(l:marks).to_equal([s:mark1, s:mark2, s:mark3])
       call append(0, ['---'])
-      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID)
+      let l:marks = s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID))
 
       let l:expects = deepcopy([s:mark1, s:mark2, s:mark3])
       for l:mark in l:expects
@@ -93,10 +93,10 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
 
     It should clear extmarks
       call s:TextMark.set('%', s:TEXT_MARK_ID, [s:mark1, s:mark2])
-      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID)
+      let l:marks = s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID))
       call s:expect(l:marks).to_equal([s:mark1, s:mark2])
       call s:TextMark.clear('%', s:TEXT_MARK_ID)
-      let l:marks = s:TextMark.get('%', s:TEXT_MARK_ID)
+      let l:marks = s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID))
       call s:expect(l:marks).to_equal([])
     End
 
@@ -111,10 +111,10 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \   'end_pos': [2, 3],
       \ }
       call s:TextMark.set('%', s:TEXT_MARK_ID, [l:mark])
-      call s:expect(s:TextMark.get('%', s:TEXT_MARK_ID)).to_equal([l:mark])
+      call s:expect(s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID))).to_equal([l:mark])
 
       " f'o'o -> f''o
-      call s:check(s:TextMark.get('%', s:TEXT_MARK_ID), [{
+      call s:check(s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID)), [{
       \   'start': [1, 1],
       \   'end': [1, 2],
       \   'text': ''
@@ -124,7 +124,7 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \ }])
 
       " f''o -> f'bar'o
-      call s:check(s:TextMark.get('%', s:TEXT_MARK_ID), [{
+      call s:check(s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID)), [{
       \   'start': [1, 1],
       \   'end': [1, 1],
       \   'text': 'bar'
@@ -134,7 +134,7 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \ }])
 
       " f'bar'o -> ''
-      call s:check(s:TextMark.get('%', s:TEXT_MARK_ID), [{
+      call s:check(s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID)), [{
       \   'start': [1, 0],
       \   'end': [1, 5],
       \   'text': ''
@@ -144,7 +144,7 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \ }])
 
       " '' -> ''
-      call s:check(s:TextMark.get('%', s:TEXT_MARK_ID), [{
+      call s:check(s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID)), [{
       \   'start': [1, 0],
       \   'end': [1, 0],
       \   'text': ''
@@ -154,7 +154,7 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \ }])
 
       " '' -> 'b'
-      call s:check(s:TextMark.get('%', s:TEXT_MARK_ID), [{
+      call s:check(s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID)), [{
       \   'start': [1, 0],
       \   'end': [1, 0],
       \   'text': 'b'
@@ -164,7 +164,7 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       \ }])
 
       " 'b' -> 'bar' ← It can't pass on nvim_buf_set_extmark. We should wait for nvim_buf_set_text's gravity.
-      " "call s:check(s:TextMark.get('%', s:TEXT_MARK_ID), [{
+      " "call s:check(s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID)), [{
       " "\   'start': [1, 1],
       " "\   'end': [1, 1],
       " "\   'text': 'ar'
@@ -176,7 +176,7 @@ Describe vital#__vital__#VS#Vim#Buffer#TextMark
       " 'b' -> ''
       call cursor([0, 0])
       call feedkeys('diw', 'nxt')
-      call s:expect(s:TextMark.get('%', s:TEXT_MARK_ID)).to_equal([{
+      call s:expect(s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID))).to_equal([{
       \   'start_pos': [2, 1],
       \   'end_pos': [2, 2],
       \ }])
@@ -191,7 +191,7 @@ function! s:check(marks, edits, expected_marks) abort
   %delete _ | call setline(1, l:buffer)
   call s:TextMark.clear('%', s:TEXT_MARK_ID)
   call s:TextMark.set('%', s:TEXT_MARK_ID, deepcopy(a:marks))
-  call s:expect(s:TextMark.get('%', s:TEXT_MARK_ID)).to_equal(a:marks)
+  call s:expect(s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID))).to_equal(a:marks)
 
   call s:TextEdit.apply('%', map(deepcopy(a:edits), { _, e -> {
   \   'range': {
@@ -201,6 +201,14 @@ function! s:check(marks, edits, expected_marks) abort
   \   'newText': e.text,
   \ } }))
 
-  call s:expect(s:TextMark.get('%', s:TEXT_MARK_ID)).to_equal(a:expected_marks)
+  call s:expect(s:remove_id(s:TextMark.get('%', s:TEXT_MARK_ID))).to_equal(a:expected_marks)
 endfunction
 
+function! s:remove_id(mark_or_marks) abort
+  if type(a:mark_or_marks) == type([])
+    return map(copy(a:mark_or_marks), 's:remove_id(v:val)')
+  endif
+  let l:mark = deepcopy(a:mark_or_marks)
+  unlet l:mark.id
+  return l:mark
+endfunction

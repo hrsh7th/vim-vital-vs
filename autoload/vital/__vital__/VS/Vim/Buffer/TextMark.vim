@@ -1,6 +1,5 @@
 let s:namespace = {}
-let s:prop_id = 0
-let s:prop_priority = 0
+let s:mark_id = 50000
 let s:prop_types = {}
 let s:prop_cache = {} " { ['ns'] => [...ids] }
 
@@ -13,6 +12,16 @@ function! s:is_available() abort
   else
     return exists('*prop_type_add') && exists('*prop_add') && exists('*prop_find') && exists('*prop_list')
   endif
+endfunction
+
+"
+" set_base_mark_id
+"
+function! s:set_base_mark_id(base_id) abort
+  if s:mark_id != 50000
+    throw 'VS.Vim.Buffer.TextMark: can only be called at initialization.'
+  endif
+  let s:mark_id = a:base_id
 endfunction
 
 "
@@ -59,7 +68,10 @@ if has('nvim')
       let s:namespace[a:ns] = nvim_create_namespace(a:ns)
     endif
     for l:mark in a:marks
+      let s:mark_id += 1
+
       let l:opts = {
+      \   'id': s:mark_id,
       \   'end_line': l:mark.end_pos[0] - 1,
       \   'end_col': l:mark.end_pos[1] - 1,
       \ }
@@ -87,7 +99,7 @@ if has('nvim')
     if !empty(a:pos)
       let l:marks = []
       for l:extmark in l:extmarks " TODO: efficiency.
-        let l:mark = s:_from_extmark(l:extmark)
+        let l:mark = s:_to_mark(l:extmark)
         let l:contains = v:true
         let l:contains = l:contains && l:mark.start_pos[0] < a:pos[0] || (l:mark.start_pos[0] == a:pos[0] && l:mark.start_pos[1] <= a:pos[1])
         let l:contains = l:contains && l:mark.end_pos[0] > a:pos[0] || (l:mark.end_pos[0] == a:pos[0] && l:mark.end_pos[1] >= a:pos[1])
@@ -98,7 +110,7 @@ if has('nvim')
       endfor
       return l:marks
     else
-      return map(l:extmarks, 's:_from_extmark(v:val)')
+      return map(l:extmarks, 's:_to_mark(v:val)')
     endif
   endfunction
 
@@ -113,10 +125,11 @@ if has('nvim')
   endfunction
 
   "
-  " from_extmark
+  " to_mark
   "
-  function! s:_from_extmark(extmark) abort
+  function! s:_to_mark(extmark) abort
     let l:mark = {}
+    let l:mark.id = a:extmark[0]
     let l:mark.start_pos = [a:extmark[1] + 1, a:extmark[2] + 1]
     let l:mark.end_pos = [a:extmark[3].end_row + 1, a:extmark[3].end_col + 1]
     if has_key(a:extmark[3], 'hl_group')
@@ -140,10 +153,10 @@ else
     " preare namespace.
     let l:cache = s:_ensure_cache(a:bufnr, a:ns)
     for l:mark in a:marks
-      let s:prop_id += 1
-      call add(l:cache.ids, s:prop_id)
+      let s:mark_id += 1
+      call add(l:cache.ids, s:mark_id)
       call prop_add(l:mark.start_pos[0], l:mark.start_pos[1], {
-      \   'id': s:prop_id,
+      \   'id': s:mark_id,
       \   'bufnr': a:bufnr,
       \   'end_lnum': l:mark.end_pos[0],
       \   'end_col': l:mark.end_pos[1],
@@ -171,7 +184,7 @@ else
       else
         let l:i = 1
         while 1
-          let l:ends = filter(prop_list(l:start_lnum + l:i, { 'id': l:prop_id }), 'v:val.id == l:prop_id') " it seems vim's bug
+          let l:ends = filter(prop_list(l:start_lnum + l:i, { 'bufnr': a:bufnr, 'id': l:prop_id }), 'v:val.id == l:prop_id') " it seems vim's bug
           if empty(l:ends)
             let l:i += 1
             continue
@@ -198,6 +211,7 @@ else
       endif
 
       let l:mark = {}
+      let l:mark.id = l:prop.id
       let l:mark.start_pos = [l:start_lnum, l:start_col]
       let l:mark.end_pos = [l:end_lnum, l:end_col]
       if has_key(s:prop_types[l:prop.type], 'highlight')
@@ -225,7 +239,6 @@ else
   function! s:_ensure_type(mark) abort
     let l:type = printf('VS.Vim.Buffer.TextMark: %s', get(a:mark, 'highlight', ''))
     if !has_key(s:prop_types, l:type)
-      let s:prop_priority += 1
       let s:prop_types[l:type] = {
       \   'start_incl': v:true,
       \   'end_incl': v:true,
