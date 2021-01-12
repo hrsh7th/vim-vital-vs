@@ -66,6 +66,7 @@ endfunction
 "
 function! s:_normalize(path) abort
   let l:path = a:path
+  let l:path = fnamemodify(l:path, ':p')
   let l:path = l:path[-1 : -1] ==# '/' ? l:path[0 : -2] : l:path
   let l:path = l:path[0 : 0] ==# '/' ? l:path : '/' . l:path
   return l:path
