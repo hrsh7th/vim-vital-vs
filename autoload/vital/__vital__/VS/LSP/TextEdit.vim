@@ -49,7 +49,7 @@ function! s:_substitute(bufnr, text_edits, current_position) abort
       let l:start = s:Position.lsp_to_vim(a:bufnr, l:text_edit.range.start)
       let l:end = s:Position.lsp_to_vim(a:bufnr, l:text_edit.range.end)
       let l:text = s:Text.normalize_eol(l:text_edit.newText)
-      execute printf('noautocmd keeppatterns keepjumps silent %ssubstitute/\%%%sl\%%%sc\zs\_.\{-}\ze\%%%sl\%%%sc/\=l:text/%se',
+      execute printf('noautocmd keeppatterns keepjumps silent %ssubstitute/\%%%sl\%%%sc\_.\{-}\%%%sl\%%%sc/\=l:text/%se',
       \   l:start[0],
       \   l:start[0],
       \   l:start[1],
@@ -163,8 +163,12 @@ endfunction
 " _switch
 "
 function! s:_switch(path) abort
-  if bufnr(a:path) >= 0
-    execute printf('noautocmd keepalt keepjumps %sbuffer!', bufnr(a:path))
+  let l:curr = bufnr('%')
+  let l:next = bufnr(a:path)
+  if l:next >= 0
+    if l:curr != l:next
+      execute printf('noautocmd keepalt keepjumps %sbuffer!', bufnr(a:path))
+    endif
   else
     execute printf('noautocmd keepalt keepjumps edit! %s', fnameescape(a:path))
   endif
