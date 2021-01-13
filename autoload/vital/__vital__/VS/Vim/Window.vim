@@ -31,17 +31,6 @@ function! s:do(winid, func) abort
 endfunction
 
 "
-" scrollable
-"
-function! s:scrollable(win, ...) abort
-  if len(a:000) == 1
-    call s:set_var(a:win, 'scrollable', a:000[0])
-  else
-    return s:get_var(a:win, 'scrollable')
-  endif
-endfunction
-
-"
 " set_var
 "
 function! s:set_var(win, key, value) abort
@@ -64,49 +53,57 @@ function! s:get_var(win, key) abort
 endfunction
 
 "
+" info
+"
+function! s:info(win) abort
+  if exists('*popup_list') && index(popup_list(), a:win) >= 0
+    let l:i = popup_getpos(a:win)
+    return {
+    \   'row': l:i.line - 1,
+    \   'col': l:i.col - 1,
+    \   'width': l:i.width,
+    \   'height': l:i.height,
+    \   'topline': l:i.firstline
+    \ }
+  endif
+  let l:i = getwininfo(a:win)[0]
+  return {
+  \   'row': l:i.winrow - 1,
+  \   'col': l:i.wincol - 1,
+  \   'width': l:i.width,
+  \   'height': l:i.height,
+  \   'topline': l:i.topline,
+  \ }
+endfunction
+
+"
 " scroll
 "
 " NOTE: We can't test it because it uses timer.
 "
-function! s:scroll(delta) abort
-  if a:delta == 0
-    return
-  endif
+function! s:scroll(win, topline) abort
+  let l:ctx = {}
+  function! l:ctx.callback(win, topline) abort
+    let l:wininfo = s:info(a:win)
+    let l:topline = a:topline
+    let l:topline = max([l:topline, 1])
+    let l:topline = min([l:topline, line('$') - l:wininfo.height + 1])
 
-  let l:wins = []
-  let l:wins += map(range(1, tabpagewinnr(tabpagenr(), '$')), 'win_getid(v:val)')
-  let l:wins += exists('*popup_list') ? popup_list() : []
-  for l:win in l:wins
-    if s:scrollable(l:win)
-      let l:ctx = {}
-      function! l:ctx.callback(win, delta) abort
-        let l:height = line('w$') - line('w0')
-        let l:topline = line('w0') + a:delta
-        let l:topline = max([l:topline, 1])
-        let l:topline = min([l:topline, line('$') - l:height])
-        let l:delta = l:topline - line('w0')
-        if l:delta == 0
-          return
-        endif
-
-        if exists('*popup_create') && !empty(popup_getpos(a:win))
-          call popup_setoptions(a:win, {
-          \   'firstline': l:topline,
-          \ })
-        else
-          execute printf('normal! %s%s%s%s',
-          \   abs(l:delta),
-          \   l:delta >= 0 ? "\<C-e>" : "\<C-y>",
-          \   abs(l:delta),
-          \   l:delta >= 0 ? 'j' : 'k',
-          \ )
-        endif
-      endfunction
-      call timer_start(0, { -> s:do(l:win, { -> l:ctx.callback(l:win, a:delta) }) })
-      break
+    if l:topline == l:wininfo.topline
+      return
     endif
-  endfor
-  return "\<Ignore>"
+
+    if exists('*popup_list') && index(popup_list(), a:win) >= 0
+      call popup_setoptions(a:win, {
+      \   'firstline': l:topline,
+      \ })
+    else
+      let l:delta = l:topline - l:wininfo.topline
+      let l:key = l:delta > 0 ? "\<C-e>" : "\<C-y>"
+      execute printf('normal! %s', repeat(l:key, abs(l:delta)))
+    endif
+  endfunction
+  call s:do(a:win, { -> l:ctx.callback(a:win, a:topline) })
 endfunction
 
 "

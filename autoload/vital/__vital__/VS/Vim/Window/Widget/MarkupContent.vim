@@ -81,7 +81,6 @@ function! s:MarkupContent.open(row, col, contents) abort
   \ })
   call setwinvar(self.window.win, '&wrap', 1)
   call setwinvar(self.window.win, '&conceallevel', 2)
-  call s:Window.scrollable(self.window.win, v:true)
   call s:Window.do(self.window.win, { -> s:Markdown.apply() })
 endfunction
 

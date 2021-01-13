@@ -1,5 +1,6 @@
 let s:expect = themis#helper('expect')
 let s:Window = vital#vital#import('VS.Vim.Window')
+let s:FloatingWindow = vital#vital#import('VS.Vim.Window.FloatingWindow')
 
 Describe vital#__vital__#VS#Vim#Window
 
@@ -19,6 +20,88 @@ Describe vital#__vital__#VS#Vim#Window
       quit!
     End
 
+  End
+
+  Describe #info
+
+    It should return normal window info
+      call s:expect(s:Window.info(win_getid())).to_equal({
+      \   'width': winwidth(0),
+      \   'height': winheight(0),
+      \   'topline': 1,
+      \   'row': 0,
+      \   'col': 0,
+      \ })
+    End
+
+    It should return floating window info
+      let l:bufnr = bufnr('test', v:true)
+      call bufload(l:bufnr)
+      call setbufline(l:bufnr, 1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+
+      let l:window = s:FloatingWindow.new()
+      call l:window.open({
+      \   'row': 0,
+      \   'col': 0,
+      \   'width': 10,
+      \   'height': 10,
+      \   'bufnr': l:bufnr,
+      \ })
+
+      call s:expect(s:Window.info(l:window.win)).to_equal({
+      \   'width': 10,
+      \   'height': 10,
+      \   'topline': 1,
+      \   'row': 0,
+      \   'col': 0,
+      \ })
+
+      call l:window.close()
+    End
+
+  End
+
+  Describe #scroll
+    It should scroll normal window
+      vnew
+      resize 5
+      call setline(1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+
+      let l:win = win_getid()
+      call s:Window.scroll(l:win, 1)
+      call s:expect(s:Window.info(l:win).topline).to_equal(1)
+      call s:Window.scroll(l:win, s:Window.info(l:win).topline + 4)
+      call s:expect(s:Window.info(l:win).topline).to_equal(5)
+      call s:Window.scroll(l:win, s:Window.info(l:win).topline + 4)
+      call s:expect(s:Window.info(l:win).topline).to_equal(7)
+
+      quit
+    End
+
+    It should scroll floating window
+      let l:bufnr = bufnr('test', v:true)
+      call bufload(l:bufnr)
+      call setbufline(l:bufnr, 1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+
+      let l:window = s:FloatingWindow.new()
+      call l:window.open({
+      \   'row': 0,
+      \   'col': 0,
+      \   'width': &columns,
+      \   'height': 5,
+      \   'bufnr': l:bufnr,
+      \ })
+
+      let l:win = l:window.win
+      call s:Window.scroll(l:win, 1)
+      call s:expect(s:Window.info(l:win).topline).to_equal(1)
+      call s:Window.scroll(l:win, s:Window.info(l:win).topline + 4)
+      call s:expect(s:Window.info(l:win).topline).to_equal(5)
+      call s:Window.scroll(l:win, s:Window.info(l:win).topline + 4)
+      call s:expect(s:Window.info(l:win).topline).to_equal(7)
+
+      call l:window.close()
+    End
   End
 
 End
