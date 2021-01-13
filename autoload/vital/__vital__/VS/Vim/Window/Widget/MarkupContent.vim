@@ -39,7 +39,6 @@ function! s:MarkupContent.new(args) abort
 
   let l:bufnr = bufnr(printf('VS.Vim.Window.Widget.MarkupContent:%s', s:id), v:true)
   call bufload(l:bufnr)
-  call setbufvar(l:bufnr, '&filetype', 'markdown')
   call setbufvar(l:bufnr, '&buflisted', 0)
   call setbufvar(l:bufnr, '&modeline', 0)
   call setbufvar(l:bufnr, '&buftype', 'nofile')
