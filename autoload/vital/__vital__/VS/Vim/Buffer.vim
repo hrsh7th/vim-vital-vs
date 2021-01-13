@@ -34,7 +34,7 @@ endfunction
 "
 if exists('*bufload')
   function! s:load(bufnr_or_path) abort
-    call bufload(a:bufnr_or_path)
+    call bufload(bufnr(a:bufnr_or_path, v:true))
   endfunction
 else
   function! s:load(bufnr_or_path) abort
