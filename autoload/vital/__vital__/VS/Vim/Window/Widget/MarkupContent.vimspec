@@ -12,11 +12,15 @@ Describe vital#__vital__#VS#Vim#Window#Widget#MarkupContent
     \   'maxwidth': float2nr(&columns * 0.3),
     \   'maxheight': float2nr(&lines * 0.3),
     \ })
-    call l:markup_content.open(1, 1, [
-    \   '```typescript',
-    \   'console.log(variable);',
-    \   '```',
-    \ ])
+    call l:markup_content.open({
+    \   'row': 1,
+    \   'col': 1,
+    \   'contents': [
+    \     '```typescript',
+    \     'console.log(variable);',
+    \     '```',
+    \   ]
+    \ })
     call l:markup_content.close()
   End
 

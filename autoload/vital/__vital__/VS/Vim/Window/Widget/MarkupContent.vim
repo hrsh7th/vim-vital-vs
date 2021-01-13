@@ -57,25 +57,25 @@ endfunction
 "
 " open
 "
-" @param {number} row
-" @param {number} col
-" @param {string[]} contents
+" @param {number} args.row
+" @param {number} args.col
+" @param {string[]} args.contents
 "
-function! s:MarkupContent.open(row, col, contents) abort
+function! s:MarkupContent.open(args) abort
   call deletebufline(self.bufnr, '^', '$')
-  call setbufline(self.bufnr, 1, a:contents)
+  call setbufline(self.bufnr, 1, a:args.contents)
 
   let l:size = s:FloatingWindow.get_size({
   \   'minwidth': self.minwidth,
   \   'maxwidth': self.maxwidth,
   \   'minheight': self.minheight,
   \   'maxheight': self.maxheight,
-  \ }, a:contents)
+  \ }, a:args.contents)
 
   call self.window.open({
   \   'bufnr': self.bufnr,
-  \   'row': a:row,
-  \   'col': a:col,
+  \   'row': a:args.row,
+  \   'col': a:args.col,
   \   'width': l:size.width,
   \   'height': l:size.height,
   \ })
