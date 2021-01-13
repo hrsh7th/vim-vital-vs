@@ -1,6 +1,5 @@
-
-
 let s:Do = { -> {} }
+
 "
 " get_line_count
 "
@@ -20,6 +19,15 @@ else
     return len(getbufline(a:bufnr, '^', '$'))
   endfunction
 endif
+
+"
+" create
+"
+function! s:create(name) abort
+  let l:bufnr = bufnr(a:name, v:true)
+  call s:load(l:bufnr)
+  return l:bufnr
+endfunction
 
 "
 " load

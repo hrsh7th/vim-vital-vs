@@ -1,11 +1,12 @@
 function! s:_vital_loaded(V) abort
   let s:Markdown = a:V.import('VS.Vim.Syntax.Markdown')
+  let s:Buffer = a:V.import('VS.Vim.Buffer')
   let s:Window = a:V.import('VS.Vim.Window')
   let s:FloatingWindow = a:V.import('VS.Vim.Window.FloatingWindow')
 endfunction
 
 function! s:_vital_depends() abort
-  return ['VS.Vim.Syntax.Markdown', 'VS.Vim.Window', 'VS.Vim.Window.FloatingWindow']
+  return ['VS.Vim.Syntax.Markdown', 'VS.Vim.Buffer', 'VS.Vim.Window', 'VS.Vim.Window.FloatingWindow']
 endfunction
 
 "
@@ -37,8 +38,7 @@ let s:MarkupContent = {}
 function! s:MarkupContent.new(args) abort
   let s:id += 1
 
-  let l:bufnr = bufnr(printf('VS.Vim.Window.Widget.MarkupContent:%s', s:id), v:true)
-  call bufload(l:bufnr)
+  let l:bufnr = s:Buffer.create(printf('VS.Vim.Window.Widget.MarkupContent:%s', s:id))
   call setbufvar(l:bufnr, '&buflisted', 0)
   call setbufvar(l:bufnr, '&modeline', 0)
   call setbufvar(l:bufnr, '&buftype', 'nofile')
