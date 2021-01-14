@@ -5,6 +5,14 @@ let s:FloatingWindow = vital#vital#import('VS.Vim.Window.FloatingWindow')
 
 Describe vital#__vital__#VS#Vim#Window
 
+  Before each
+    tabnew!
+  End
+
+  After each
+    tabclose!
+  End
+
   Describe #do
 
     It should restore modes
@@ -18,7 +26,6 @@ Describe vital#__vital__#VS#Vim#Window
       normal! 1G1|v$
       call s:expect(s:Window.do(l:winid1, { -> getline('1') })).to_equal('foo')
       call s:expect(mode()).to_equal('v')
-      quit!
     End
 
   End
@@ -26,11 +33,13 @@ Describe vital#__vital__#VS#Vim#Window
   Describe #info
 
     It should return normal window info
+      call setline('%', ['foo', 'bar'])
+      call cursor([2, 2])
       call s:expect(s:Window.info(win_getid())).to_equal({
       \   'width': winwidth(0),
       \   'height': winheight(0),
       \   'topline': 1,
-      \   'row': 0,
+      \   'row': 1,
       \   'col': 0,
       \ })
     End
@@ -66,6 +75,7 @@ Describe vital#__vital__#VS#Vim#Window
   End
 
   Describe #scroll
+
     It should scroll normal window
       vnew!
       resize 5
@@ -78,8 +88,6 @@ Describe vital#__vital__#VS#Vim#Window
       call s:expect(s:Window.info(l:win).topline).to_equal(5)
       call s:Window.scroll(l:win, s:Window.info(l:win).topline + 4)
       call s:expect(s:Window.info(l:win).topline).to_equal(7)
-
-      quit!
     End
 
     It should scroll floating window
@@ -106,9 +114,8 @@ Describe vital#__vital__#VS#Vim#Window
       call s:expect(s:Window.info(l:win).topline).to_equal(5)
       call s:Window.scroll(l:win, s:Window.info(l:win).topline + 4)
       call s:expect(s:Window.info(l:win).topline).to_equal(7)
-
-      call l:window.close()
     End
+
   End
 
 End

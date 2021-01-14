@@ -81,14 +81,17 @@ else
 
     let l:ctx = {}
     let l:ctx.info = {}
-    function! l:ctx.callback() abort
-      let self.info.row = winline() - 1
-      let self.info.col = wincol() - 1
-      let self.info.width = winwidth(0)
-      let self.info.height = winheight(0)
-      let self.info.topline = line('w0')
+    function! l:ctx.callback(win) abort
+      let l:info = getwininfo(a:win)[0]
+      let self.info = {
+      \   'row': l:info.winrow - 1,
+      \   'col': l:info.wincol - 1,
+      \   'width': l:info.width,
+      \   'height': l:info.height,
+      \   'topline': l:info.topline,
+      \ }
     endfunction
-    call s:do(a:win, { -> l:ctx.callback() })
+    call s:do(a:win, { -> l:ctx.callback(a:win) })
     return l:ctx.info
   endfunction
 endif
