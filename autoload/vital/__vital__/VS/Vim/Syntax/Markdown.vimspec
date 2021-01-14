@@ -18,14 +18,14 @@ Describe vital#__vital__#VS#Vim#Syntax#Markdown
       \   'Header',
       \   '===',
       \   '',
-      \   '```typescript',
-      \   'console.log("Hello, world!");',
+      \   '```vim',
+      \   'call getbufline("%", "^", "$")',
       \   '```',
       \ ])
       call s:Markdown.apply()
 
       call s:expect(s:syntax(1, 1)).to_equal('markdownH1')
-      call s:expect(s:syntax(5, 13)).to_equal('typescriptString')
+      call s:expect(s:syntax(5, 13)).to_equal('vimUserFunc')
     End
 
     It should apply fenced code block with g:markdown_fenced_languages
@@ -33,17 +33,17 @@ Describe vital#__vital__#VS#Vim#Syntax#Markdown
       \   'Header',
       \   '===',
       \   '',
-      \   '```ts',
-      \   'console.log("Hello, world!");',
+      \   '```viml',
+      \   'call getbufline("%", "^", "$")',
       \   '```',
       \ ])
 
-      let g:markdown_fenced_languages = ['ts=typescript']
+      let g:markdown_fenced_languages = ['viml=vim']
       call s:Markdown.apply()
       let g:markdown_fenced_languages = []
 
       call s:expect(s:syntax(1, 1)).to_equal('markdownH1')
-      call s:expect(s:syntax(5, 13)).to_equal('typescriptString')
+      call s:expect(s:syntax(5, 13)).to_equal('vimUserFunc')
     End
 
     It should apply fenced code block with specified filetype map
@@ -51,17 +51,17 @@ Describe vital#__vital__#VS#Vim#Syntax#Markdown
       \   'Header',
       \   '===',
       \   '',
-      \   '```ts',
-      \   'console.log("Hello, world!");',
+      \   '```viml',
+      \   'call getbufline("%", "^", "$")',
       \   '```',
       \ ])
 
       call s:Markdown.apply({
-      \   'ts': 'typescript',
+      \   'viml': 'vim',
       \ })
 
       call s:expect(s:syntax(1, 1)).to_equal('markdownH1')
-      call s:expect(s:syntax(5, 13)).to_equal('typescriptString')
+      call s:expect(s:syntax(5, 13)).to_equal('vimUserFunc')
     End
 
   End
