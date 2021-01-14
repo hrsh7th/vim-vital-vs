@@ -26,7 +26,7 @@ Describe vital#__vital__#VS#Vim#Window
   Describe #info
 
     It should return normal window info
-      call s:expect(s:Window.info(win_getid())).to_equal({
+      call s:expect(s:Window.info(0)).to_equal({
       \   'width': winwidth(0),
       \   'height': winheight(0),
       \   'topline': 1,
