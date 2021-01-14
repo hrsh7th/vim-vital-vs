@@ -1,4 +1,5 @@
 let s:expect = themis#helper('expect')
+let s:Buffer = vital#vital#import('VS.Vim.Buffer')
 let s:Window = vital#vital#import('VS.Vim.Window')
 let s:FloatingWindow = vital#vital#import('VS.Vim.Window.FloatingWindow')
 
@@ -17,7 +18,7 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
       \   'col': 1,
       \   'width': 10,
       \   'height': 10,
-      \   'bufnr': bufnr('test', v:true),
+      \   'bufnr': s:Buffer.create(),
       \ })
       call s:expect(l:win.is_visible()).to_equal(v:true)
       call l:win.close()
@@ -27,7 +28,6 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
 
   Describe #on_close
     It should callback on closed by method
-      let l:bufnr = bufnr('test', v:true)
       let s:closed = v:false
       let l:win = s:FloatingWindow.new({
       \   'on_closed': { win -> execute('let s:closed = v:true') }
@@ -37,7 +37,7 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
       \   'col': 1,
       \   'width': 10,
       \   'height': 10,
-      \   'bufnr': l:bufnr,
+      \   'bufnr': s:Buffer.create(),
       \ })
       call l:win.close()
       call s:expect(s:closed).to_equal(v:true)
@@ -48,7 +48,6 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
         return
       endif
 
-      let l:bufnr = bufnr('test', v:true)
       let s:closed = v:false
       let l:win = s:FloatingWindow.new({
       \   'on_closed': { win -> execute('let s:closed = v:true') }
@@ -58,7 +57,7 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
       \   'col': 1,
       \   'width': 10,
       \   'height': 10,
-      \   'bufnr': l:bufnr,
+      \   'bufnr': s:Buffer.create(),
       \ })
       call popup_close(l:win.win)
       call s:expect(s:closed).to_equal(v:true)
@@ -69,7 +68,6 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
         return
       endif
 
-      let l:bufnr = bufnr('test', v:true)
       let s:closed = v:false
       let l:win = s:FloatingWindow.new({
       \   'on_closed': { win -> execute('let s:closed = v:true') }
@@ -79,7 +77,7 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
       \   'col': 1,
       \   'width': 10,
       \   'height': 10,
-      \   'bufnr': l:bufnr,
+      \   'bufnr': s:Buffer.create(),
       \ })
       call l:win.enter()
       call execute('close')

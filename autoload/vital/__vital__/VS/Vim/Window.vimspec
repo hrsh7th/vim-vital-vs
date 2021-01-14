@@ -1,4 +1,5 @@
 let s:expect = themis#helper('expect')
+let s:Buffer = vital#vital#import('VS.Vim.Buffer')
 let s:Window = vital#vital#import('VS.Vim.Window')
 let s:FloatingWindow = vital#vital#import('VS.Vim.Window.FloatingWindow')
 
@@ -35,8 +36,7 @@ Describe vital#__vital__#VS#Vim#Window
     End
 
     It should return floating window info
-      let l:bufnr = bufnr('test', v:true)
-      call bufload(l:bufnr)
+      let l:bufnr = s:Buffer.create()
       call setbufline(l:bufnr, 1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
 
       let l:window = s:FloatingWindow.new()
@@ -79,8 +79,7 @@ Describe vital#__vital__#VS#Vim#Window
     End
 
     It should scroll floating window
-      let l:bufnr = bufnr('test', v:true)
-      call bufload(l:bufnr)
+      let l:bufnr = s:Buffer.create()
       call setbufline(l:bufnr, 1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
 
       let l:window = s:FloatingWindow.new()
