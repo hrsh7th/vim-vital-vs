@@ -55,38 +55,43 @@ endfunction
 "
 " info
 "
-" NOTE: In older vim, it can be caused exception when call synchronous.
-"
-function! s:info(win) abort
-  if exists('*popup_list') && index(popup_list(), a:win) >= 0
-    let l:info = popup_getpos(a:win)
+if has('nvim')
+  function! s:info(win) abort
+    let l:info = wingetinfo(a:win)[0]
     return {
-    \   'row': l:info.line - 1,
-    \   'col': l:info.col - 1,
+    \   'row': l:info.winrow - 1,
+    \   'col': l:info.wincol - 1,
     \   'width': l:info.width,
     \   'height': l:info.height,
-    \   'topline': l:info.firstline
+    \   'topline': l:info.topline,
     \ }
-  endif
+  endfunction
+else
+  function! s:info(win) abort
+    if exists('*popup_list') && index(popup_list(), a:win) >= 0
+      let l:info = popup_getpos(a:win)
+      return {
+      \   'row': l:info.line - 1,
+      \   'col': l:info.col - 1,
+      \   'width': l:info.width,
+      \   'height': l:info.height,
+      \   'topline': l:info.firstline
+      \ }
+    endif
 
-  let l:i = 0
-  let l:info = {}
-  while l:i < 5 && empty(l:info)
-    let l:info = get(getwininfo(a:win), 0, {})
-    sleep 10ms
-    let l:i += 1
-  endwhile
-  if empty(l:info)
-    return {}
-  endif
-  return {
-  \   'row': l:info.winrow - 1,
-  \   'col': l:info.wincol - 1,
-  \   'width': l:info.width,
-  \   'height': l:info.height,
-  \   'topline': l:info.topline,
-  \ }
-endfunction
+    let l:ctx = {}
+    let l:ctx.info = {}
+    function! l:ctx.callback() abort
+      let self.info.row = winline() - 1
+      let self.info.col = wincol() - 1
+      let self.info.width = winwidth(0)
+      let self.info.height = winheight(0)
+      let self.info.topline = line('w0')
+    endfunction
+    call s:do(a:win, { -> l:ctx.callback() })
+    return l:ctx.info
+  endfunction
+endif
 
 "
 " scroll
