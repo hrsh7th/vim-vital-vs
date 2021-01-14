@@ -25,7 +25,7 @@ Describe vital#__vital__#VS#Vim#Syntax#Markdown
       call s:Markdown.apply()
 
       call s:expect(s:syntax(1, 1)).to_equal('markdownH1')
-      call s:expect(s:syntax(5, 13)).to_equal('vimUserFunc')
+      call s:expect(s:syntax(5, 17)).to_equal('vimString')
     End
 
     It should apply fenced code block with g:markdown_fenced_languages
@@ -43,7 +43,7 @@ Describe vital#__vital__#VS#Vim#Syntax#Markdown
       let g:markdown_fenced_languages = []
 
       call s:expect(s:syntax(1, 1)).to_equal('markdownH1')
-      call s:expect(s:syntax(5, 13)).to_equal('vimUserFunc')
+      call s:expect(s:syntax(5, 17)).to_equal('vimString')
     End
 
     It should apply fenced code block with specified filetype map
@@ -61,7 +61,7 @@ Describe vital#__vital__#VS#Vim#Syntax#Markdown
       \ })
 
       call s:expect(s:syntax(1, 1)).to_equal('markdownH1')
-      call s:expect(s:syntax(5, 13)).to_equal('vimUserFunc')
+      call s:expect(s:syntax(5, 17)).to_equal('vimString')
     End
 
   End
