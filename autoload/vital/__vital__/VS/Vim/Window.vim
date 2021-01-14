@@ -59,8 +59,6 @@ if has('nvim')
   function! s:info(win) abort
     let l:info = getwininfo(a:win)[0]
     return {
-    \   'row': l:info.winrow - 1,
-    \   'col': l:info.wincol - 1,
     \   'width': l:info.width,
     \   'height': l:info.height,
     \   'topline': l:info.topline,
@@ -71,8 +69,6 @@ else
     if exists('*popup_list') && index(popup_list(), a:win) >= 0
       let l:info = popup_getpos(a:win)
       return {
-      \   'row': l:info.line - 1,
-      \   'col': l:info.col - 1,
       \   'width': l:info.width,
       \   'height': l:info.height,
       \   'topline': l:info.firstline
@@ -81,17 +77,12 @@ else
 
     let l:ctx = {}
     let l:ctx.info = {}
-    function! l:ctx.callback(win) abort
-      let l:info = getwininfo(a:win)[0]
-      let self.info = {
-      \   'row': l:info.winrow - 1,
-      \   'col': l:info.wincol - 1,
-      \   'width': l:info.width,
-      \   'height': l:info.height,
-      \   'topline': l:info.topline,
-      \ }
+    function! l:ctx.callback() abort
+      let self.info.width = winwidth(0)
+      let self.info.height = winheight(0)
+      let self.info.topline = line('w0')
     endfunction
-    call s:do(a:win, { -> l:ctx.callback(a:win) })
+    call s:do(a:win, { -> l:ctx.callback() })
     return l:ctx.info
   endfunction
 endif

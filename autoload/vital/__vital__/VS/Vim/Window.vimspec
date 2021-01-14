@@ -39,8 +39,6 @@ Describe vital#__vital__#VS#Vim#Window
       \   'width': winwidth(0),
       \   'height': winheight(0),
       \   'topline': 1,
-      \   'row': 1,
-      \   'col': 0,
       \ })
     End
 
@@ -65,8 +63,6 @@ Describe vital#__vital__#VS#Vim#Window
       \   'width': 10,
       \   'height': 10,
       \   'topline': 1,
-      \   'row': 0,
-      \   'col': 0,
       \ })
 
       call l:window.close()
