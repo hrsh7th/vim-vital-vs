@@ -57,7 +57,7 @@ endfunction
 "
 if has('nvim')
   function! s:info(win) abort
-    let l:info = wingetinfo(a:win)[0]
+    let l:info = getwininfo(a:win)[0]
     return {
     \   'row': l:info.winrow - 1,
     \   'col': l:info.wincol - 1,
