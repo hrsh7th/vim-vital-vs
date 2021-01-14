@@ -70,6 +70,10 @@ function! s:info(win) abort
   if empty(l:is)
     return {}
   endif
+  call themis#log({
+  \   'win': a:win,
+  \   'is': l:is,
+  \ })
   let l:is = filter(l:is, 'v:val.winid == a:win')
   return {
   \   'row': l:is[0].winrow - 1,
