@@ -61,11 +61,11 @@ function! s:info(win) abort
   if exists('*popup_list') && index(popup_list(), a:win) >= 0
     let l:info = popup_getpos(a:win)
     return {
-    \   'row': l:i.line - 1,
-    \   'col': l:i.col - 1,
-    \   'width': l:i.width,
-    \   'height': l:i.height,
-    \   'topline': l:i.firstline
+    \   'row': l:info.line - 1,
+    \   'col': l:info.col - 1,
+    \   'width': l:info.width,
+    \   'height': l:info.height,
+    \   'topline': l:info.firstline
     \ }
   endif
 
@@ -76,7 +76,7 @@ function! s:info(win) abort
     sleep 10ms
     let l:i += 1
   endwhile
-  if empty(l:i)
+  if empty(l:info)
     return {}
   endif
   return {
