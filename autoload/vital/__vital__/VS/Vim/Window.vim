@@ -55,9 +55,11 @@ endfunction
 "
 " info
 "
+" NOTE: In older vim, it can be caused exception when call synchronous.
+"
 function! s:info(win) abort
   if exists('*popup_list') && index(popup_list(), a:win) >= 0
-    let l:i = popup_getpos(a:win)
+    let l:info = popup_getpos(a:win)
     return {
     \   'row': l:i.line - 1,
     \   'col': l:i.col - 1,
@@ -66,21 +68,23 @@ function! s:info(win) abort
     \   'topline': l:i.firstline
     \ }
   endif
-  let l:is = getwininfo()
-  if empty(l:is)
+
+  let l:i = 0
+  let l:info = {}
+  while l:i < 5 && empty(l:info)
+    let l:info = get(getwininfo(a:win), 0, {})
+    sleep 10ms
+    let l:i += 1
+  endwhile
+  if empty(l:i)
     return {}
   endif
-  call themis#log({
-  \   'win': a:win,
-  \   'is': l:is,
-  \ })
-  let l:is = filter(l:is, 'v:val.winid == a:win')
   return {
-  \   'row': l:is[0].winrow - 1,
-  \   'col': l:is[0].wincol - 1,
-  \   'width': l:is[0].width,
-  \   'height': l:is[0].height,
-  \   'topline': l:is[0].topline,
+  \   'row': l:info.winrow - 1,
+  \   'col': l:info.wincol - 1,
+  \   'width': l:info.width,
+  \   'height': l:info.height,
+  \   'topline': l:info.topline,
   \ }
 endfunction
 

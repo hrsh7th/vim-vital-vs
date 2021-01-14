@@ -67,7 +67,7 @@ Describe vital#__vital__#VS#Vim#Window
 
   Describe #scroll
     It should scroll normal window
-      vnew
+      vnew!
       resize 5
       call setline(1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
 
@@ -79,7 +79,7 @@ Describe vital#__vital__#VS#Vim#Window
       call s:Window.scroll(l:win, s:Window.info(l:win).topline + 4)
       call s:expect(s:Window.info(l:win).topline).to_equal(7)
 
-      quit
+      quit!
     End
 
     It should scroll floating window
