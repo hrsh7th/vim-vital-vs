@@ -66,20 +66,21 @@ function! s:info(win) abort
     \   'topline': l:i.firstline
     \ }
   endif
-  let l:i = getwininfo(a:win)[0]
+  let l:is = getwininfo(a:win)
+  if empty(l:is)
+    return {}
+  endif
   return {
-  \   'row': l:i.winrow - 1,
-  \   'col': l:i.wincol - 1,
-  \   'width': l:i.width,
-  \   'height': l:i.height,
-  \   'topline': l:i.topline,
+  \   'row': l:is[0].winrow - 1,
+  \   'col': l:is[0].wincol - 1,
+  \   'width': l:is[0].width,
+  \   'height': l:is[0].height,
+  \   'topline': l:is[0].topline,
   \ }
 endfunction
 
 "
 " scroll
-"
-" NOTE: We can't test it because it uses timer.
 "
 function! s:scroll(win, topline) abort
   let l:ctx = {}
