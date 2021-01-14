@@ -66,10 +66,11 @@ function! s:info(win) abort
     \   'topline': l:i.firstline
     \ }
   endif
-  let l:is = getwininfo(a:win)
+  let l:is = getwininfo()
   if empty(l:is)
     return {}
   endif
+  let l:is = filter(l:is, 'v:val.winid == a:win')
   return {
   \   'row': l:is[0].winrow - 1,
   \   'col': l:is[0].wincol - 1,
