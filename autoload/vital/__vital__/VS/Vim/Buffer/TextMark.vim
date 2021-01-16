@@ -1,5 +1,9 @@
+"
+" VS.Vim.Buffer.TextMark uses id as global value.
+"
+let g:___VS_Vim_Buffer_TextMark_id = get(g:, '___VS_Vim_Buffer_TextMark_id', 100000)
+
 let s:namespace = {}
-let s:mark_id = 50000
 let s:prop_types = {}
 let s:prop_cache = {} " { ['ns'] => [...ids] }
 
@@ -12,16 +16,6 @@ function! s:is_available() abort
   else
     return exists('*prop_type_add') && exists('*prop_add') && exists('*prop_find') && exists('*prop_list')
   endif
-endfunction
-
-"
-" set_base_mark_id
-"
-function! s:set_base_mark_id(base_id) abort
-  if s:mark_id != 50000
-    throw 'VS.Vim.Buffer.TextMark: can only be called at initialization.'
-  endif
-  let s:mark_id = a:base_id
 endfunction
 
 "
@@ -68,10 +62,10 @@ if has('nvim')
       let s:namespace[a:ns] = nvim_create_namespace(a:ns)
     endif
     for l:mark in a:marks
-      let s:mark_id += 1
+      let g:___VS_Vim_Buffer_TextMark_id += 1
 
       let l:opts = {
-      \   'id': s:mark_id,
+      \   'id':  g:___VS_Vim_Buffer_TextMark_id,
       \   'end_line': l:mark.end_pos[0] - 1,
       \   'end_col': l:mark.end_pos[1] - 1,
       \ }
@@ -153,10 +147,10 @@ else
     " preare namespace.
     let l:cache = s:_ensure_cache(a:bufnr, a:ns)
     for l:mark in a:marks
-      let s:mark_id += 1
-      call add(l:cache.ids, s:mark_id)
+      let g:___VS_Vim_Buffer_TextMark_id += 1
+      call add(l:cache.ids, g:___VS_Vim_Buffer_TextMark_id)
       call prop_add(l:mark.start_pos[0], l:mark.start_pos[1], {
-      \   'id': s:mark_id,
+      \   'id': g:___VS_Vim_Buffer_TextMark_id,
       \   'bufnr': a:bufnr,
       \   'end_lnum': l:mark.end_pos[0],
       \   'end_col': l:mark.end_pos[1],
