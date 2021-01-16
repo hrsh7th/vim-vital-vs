@@ -1,7 +1,13 @@
+"
+" _vital_loaded
+"
 function! s:_vital_loaded(V) abort
   let s:Window = a:V.import('VS.Vim.Window')
 endfunction
 
+"
+" _vital_depends
+"
 function! s:_vital_depends() abort
   return ['VS.Vim.Window']
 endfunction
@@ -22,41 +28,6 @@ function! s:is_available() abort
 endfunction
 
 "
-" @param {number} args.minwidth
-" @param {number} args.maxwidth
-" @param {number} args.minheight
-" @param {number} args.maxheight
-" @param {string[]} contents
-"
-function! s:get_size(args, contents) abort
-  let l:maxwidth = get(a:args, 'maxwidth', -1)
-  let l:minwidth = get(a:args, 'minwidth', -1)
-  let l:maxheight = get(a:args, 'maxheight', -1)
-  let l:minheight = get(a:args, 'minheight', -1)
-
-  " width
-  let l:width = 0
-  for l:content in a:contents
-    let l:width = max([l:width, strdisplaywidth(l:content)])
-  endfor
-  let l:width = l:minwidth == -1 ? l:width : max([l:minwidth, l:width])
-  let l:width = l:maxwidth == -1 ? l:width : min([l:maxwidth, l:width])
-
-  " height
-  let l:height = 0
-  for l:content in a:contents
-    let l:height += max([1, float2nr(ceil(strdisplaywidth(l:content) / str2float('' . l:width)))])
-  endfor
-  let l:height = l:minheight == -1 ? l:height : max([l:minheight, l:height])
-  let l:height = l:maxheight == -1 ? l:height : min([l:maxheight, l:height])
-
-  return {
-  \   'width': max([1, l:width]),
-  \   'height': max([1, l:height]),
-  \ }
-endfunction
-
-"
 " new
 "
 function! s:new(...) abort
@@ -68,12 +39,12 @@ endfunction
 "
 " _notify_opened
 "
-" @param {number} win
+" @param {number} winid
 " @param {VS.Vim.Window.FloatingWindow} floating_window
 "
-function! s:_notify_opened(win, floating_window) abort
-  let s:floating_windows[a:win] = a:floating_window
-  call a:floating_window.on_opened(a:floating_window)
+function! s:_notify_opened(winid, floating_window) abort
+  let s:floating_windows[a:winid] = a:floating_window
+  call a:floating_window._on_opened(a:floating_window)
 endfunction
 
 "
@@ -82,7 +53,7 @@ endfunction
 function! s:_notify_closed() abort
   for [l:win, l:floating_window] in items(s:floating_windows)
     if winheight(l:win) == -1
-      call l:floating_window.on_closed(l:floating_window)
+      call l:floating_window._on_closed(l:floating_window)
       unlet s:floating_windows[l:win]
     endif
   endfor
@@ -98,34 +69,85 @@ let s:FloatingWindow = {}
 "
 function! s:FloatingWindow.new(args) abort
   return extend(deepcopy(s:FloatingWindow), {
-  \   'win': v:null,
-  \   'on_opened': get(a:args, 'on_opened', { -> {} }),
-  \   'on_closed': get(a:args, 'on_closed', { -> {} }),
+  \   '_winid': v:null,
+  \   '_bufnr': v:null,
+  \   '_on_opened': get(a:args, 'on_opened', { -> {} }),
+  \   '_on_closed': get(a:args, 'on_closed', { -> {} }),
   \ })
+endfunction
+
+"
+" set_bufnr
+"
+" @param {number} bufnr
+"
+function! s:FloatingWindow.set_bufnr(bufnr) abort
+  let self._bufnr = a:bufnr
+endfunction
+
+"
+" get_size
+"
+" @param {number} args.minwidth
+" @param {number} args.maxwidth
+" @param {number} args.minheight
+" @param {number} args.maxheight
+"
+function! s:FloatingWindow.get_size(args) abort
+  if self._bufnr is# v:null
+    throw 'VS.Vim.Window.FloatingWindow: Failed to detect bufnr.'
+  endif
+
+  let l:maxwidth = get(a:args, 'maxwidth', -1)
+  let l:minwidth = get(a:args, 'minwidth', -1)
+  let l:maxheight = get(a:args, 'maxheight', -1)
+  let l:minheight = get(a:args, 'minheight', -1)
+  let l:lines = getbufline(self._bufnr, '^', '$')
+
+  " width
+  let l:width = 0
+  for l:line in l:lines
+    let l:width = max([l:width, strdisplaywidth(l:line)])
+  endfor
+
+  let l:width = l:minwidth == -1 ? l:width : max([l:minwidth, l:width])
+  let l:width = l:maxwidth == -1 ? l:width : min([l:maxwidth, l:width])
+
+  " height
+  let l:height = 0
+  for l:line in l:lines
+    let l:height += max([1, float2nr(ceil(strdisplaywidth(l:line) / str2float('' . l:width)))])
+  endfor
+  let l:height = l:minheight == -1 ? l:height : max([l:minheight, l:height])
+  let l:height = l:maxheight == -1 ? l:height : min([l:maxheight, l:height])
+
+  return {
+  \   'width': max([1, l:width]),
+  \   'height': max([1, l:height]),
+  \ }
 endfunction
 
 "
 " open
 "
-" @param {number}  args.row 0-based indexing
-" @param {number}  args.col 0-based indexing
-" @param {number}  args.width
-" @param {number}  args.height
-" @param {number}  args.bufnr
+" @param {number} args.row 0-based indexing
+" @param {number} args.col 0-based indexing
+" @param {number} args.width
+" @param {number} args.height
 "
 function! s:FloatingWindow.open(args) abort
   let l:style = {
-    \   'row': a:args.row,
-    \   'col': a:args.col,
-    \   'width': a:args.width,
-    \   'height': a:args.height,
-    \ }
+  \   'row': a:args.row,
+  \   'col': a:args.col,
+  \   'width': a:args.width,
+  \   'height': a:args.height,
+  \ }
 
   if self.is_visible()
-    call s:_move(self.win, l:style)
+    call s:_move(self._winid, l:style)
   else
-    let self.win = s:_open(a:args.bufnr, l:style, { -> self.on_closed(self) })
-    call s:_notify_opened(self.win, self)
+    let self._winid = s:_open(self._bufnr, l:style, { -> self._on_closed(self) })
+    call s:_notify_opened(self._winid, self)
   endif
 endfunction
 
@@ -134,24 +156,24 @@ endfunction
 "
 function! s:FloatingWindow.close() abort
   if self.is_visible()
-    call s:_close(self.win)
+    call s:_close(self._winid)
     call s:_notify_closed()
   endif
-  let self.win = v:null
+  let self._winid = v:null
 endfunction
 
 "
 " enter
 "
 function! s:FloatingWindow.enter() abort
-  call s:_enter(self.win)
+  call s:_enter(self._winid)
 endfunction
 
 "
 " is_visible
 "
 function! s:FloatingWindow.is_visible() abort
-  return s:_exists(self.win) ? v:true : v:false
+  return s:_exists(self._winid) ? v:true : v:false
 endfunction
 
 "
@@ -159,15 +181,12 @@ endfunction
 "
 if has('nvim')
   function! s:_open(buf, style, callback) abort
-    let l:win = nvim_open_win(a:buf, v:false, s:_style(a:style))
-    call nvim_win_set_cursor(l:win, [1, 1])
-    return l:win
+    return nvim_open_win(a:buf, v:false, s:_style(a:style))
   endfunction
 else
   function! s:_open(buf, style, callback) abort
     return popup_create(a:buf, extend(s:_style(a:style), {
     \  'callback': a:callback,
-    \  'firstline': 1,
     \ }, 'force'))
   endfunction
 endif
@@ -261,7 +280,7 @@ endif
 "
 let s:has_init = v:false
 function! s:_init() abort
-  if s:has_init
+  if s:has_init || !has('nvim')
     return
   endif
   let s:has_init = v:true

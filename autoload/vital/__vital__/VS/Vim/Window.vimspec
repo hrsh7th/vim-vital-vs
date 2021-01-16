@@ -50,22 +50,22 @@ Describe vital#__vital__#VS#Vim#Window
       let l:bufnr = s:Buffer.create()
       call setbufline(l:bufnr, 1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
 
-      let l:window = s:FloatingWindow.new()
-      call l:window.open({
+      let l:win = s:FloatingWindow.new()
+      call l:win.set_bufnr(l:bufnr)
+      call l:win.open({
       \   'row': 0,
       \   'col': 0,
       \   'width': 10,
       \   'height': 10,
-      \   'bufnr': l:bufnr,
       \ })
 
-      call s:expect(s:Window.info(l:window.win)).to_equal({
+      call s:expect(s:Window.info(l:win._winid)).to_equal({
       \   'width': 10,
       \   'height': 10,
       \   'topline': 1,
       \ })
 
-      call l:window.close()
+      call l:win.close()
     End
 
   End
@@ -94,22 +94,21 @@ Describe vital#__vital__#VS#Vim#Window
       let l:bufnr = s:Buffer.create()
       call setbufline(l:bufnr, 1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
 
-      let l:window = s:FloatingWindow.new()
-      call l:window.open({
+      let l:win = s:FloatingWindow.new()
+      call l:win.set_bufnr(l:bufnr)
+      call l:win.open({
       \   'row': 0,
       \   'col': 0,
       \   'width': &columns,
       \   'height': 5,
-      \   'bufnr': l:bufnr,
       \ })
 
-      let l:win = l:window.win
-      call s:Window.scroll(l:win, 1)
-      call s:expect(s:Window.info(l:win).topline).to_equal(1)
-      call s:Window.scroll(l:win, s:Window.info(l:win).topline + 4)
-      call s:expect(s:Window.info(l:win).topline).to_equal(5)
-      call s:Window.scroll(l:win, s:Window.info(l:win).topline + 4)
-      call s:expect(s:Window.info(l:win).topline).to_equal(7)
+      call s:Window.scroll(l:win._winid, 1)
+      call s:expect(s:Window.info(l:win._winid).topline).to_equal(1)
+      call s:Window.scroll(l:win._winid, s:Window.info(l:win._winid).topline + 4)
+      call s:expect(s:Window.info(l:win._winid).topline).to_equal(5)
+      call s:Window.scroll(l:win._winid, s:Window.info(l:win._winid).topline + 4)
+      call s:expect(s:Window.info(l:win._winid).topline).to_equal(7)
     End
 
   End

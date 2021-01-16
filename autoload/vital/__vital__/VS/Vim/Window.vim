@@ -31,28 +31,6 @@ function! s:do(winid, func) abort
 endfunction
 
 "
-" set_var
-"
-function! s:set_var(win, key, value) abort
-  if winheight(a:win) != -1
-    let l:map = getwinvar(a:win, '___VS_Vim_Window', {})
-    let l:map[a:key] = a:value
-    call setwinvar(a:win, '___VS_Vim_Window', l:map)
-  endif
-endfunction
-
-"
-" get_var
-"
-function! s:get_var(win, key) abort
-  if winheight(a:win) != -1
-    let l:map = getwinvar(a:win, '___VS_Vim_Window', {})
-    return get(l:map, a:key, v:null)
-  endif
-  return v:null
-endfunction
-
-"
 " info
 "
 if has('nvim')
@@ -86,6 +64,16 @@ else
     return l:ctx.info
   endfunction
 endif
+
+"
+" find
+"
+function! s:find(callback) abort
+  let l:winids = []
+  let l:winids += map(range(1, tabpagewinnr(tabpagenr(), '$')), 'win_getid(v:val)')
+  let l:winids += exists('*popup_list') ? popup_list() : []
+  return filter(l:winids, 'a:callback(v:val)')
+endfunction
 
 "
 " scroll

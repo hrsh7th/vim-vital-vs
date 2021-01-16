@@ -13,12 +13,12 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
     It should return visibility of the floating window
       let l:win = s:FloatingWindow.new()
       call s:expect(l:win.is_visible()).to_equal(v:false)
+      call l:win.set_bufnr(s:Buffer.create())
       call l:win.open({
       \   'row': 1,
       \   'col': 1,
       \   'width': 10,
       \   'height': 10,
-      \   'bufnr': s:Buffer.create(),
       \ })
       call s:expect(l:win.is_visible()).to_equal(v:true)
       call l:win.close()
@@ -32,12 +32,12 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
       let l:win = s:FloatingWindow.new({
       \   'on_closed': { win -> execute('let s:closed = v:true') }
       \ })
+      call l:win.set_bufnr(s:Buffer.create())
       call l:win.open({
       \   'row': 1,
       \   'col': 1,
       \   'width': 10,
       \   'height': 10,
-      \   'bufnr': s:Buffer.create(),
       \ })
       call l:win.close()
       call s:expect(s:closed).to_equal(v:true)
@@ -52,14 +52,14 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
       let l:win = s:FloatingWindow.new({
       \   'on_closed': { win -> execute('let s:closed = v:true') }
       \ })
+      call l:win.set_bufnr(s:Buffer.create())
       call l:win.open({
       \   'row': 1,
       \   'col': 1,
       \   'width': 10,
       \   'height': 10,
-      \   'bufnr': s:Buffer.create(),
       \ })
-      call popup_close(l:win.win)
+      call popup_close(l:win._winid)
       call s:expect(s:closed).to_equal(v:true)
     End
 
@@ -72,12 +72,12 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
       let l:win = s:FloatingWindow.new({
       \   'on_closed': { win -> execute('let s:closed = v:true') }
       \ })
+      call l:win.set_bufnr(s:Buffer.create())
       call l:win.open({
       \   'row': 1,
       \   'col': 1,
       \   'width': 10,
       \   'height': 10,
-      \   'bufnr': s:Buffer.create(),
       \ })
       call l:win.enter()
       call execute('close')
