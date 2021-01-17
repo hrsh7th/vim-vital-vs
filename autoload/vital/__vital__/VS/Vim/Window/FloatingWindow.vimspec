@@ -26,11 +26,11 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
     End
   End
 
-  Describe #on_close
+  Describe #on_closed
     It should callback on closed by method
-      let s:closed = v:false
+      let s:closed = 0
       let l:win = s:FloatingWindow.new({
-      \   'on_closed': { win -> execute('let s:closed = v:true') }
+      \   'on_closed': { -> execute('let s:closed += 1') }
       \ })
       call l:win.set_bufnr(s:Buffer.create())
       call l:win.open({
@@ -40,7 +40,7 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
       \   'height': 10,
       \ })
       call l:win.close()
-      call s:expect(s:closed).to_equal(v:true)
+      call s:expect(s:closed).to_equal(1)
     End
 
     It should callback on closed by popup_close (vim only)
@@ -48,9 +48,9 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
         return
       endif
 
-      let s:closed = v:false
+      let s:closed = 0
       let l:win = s:FloatingWindow.new({
-      \   'on_closed': { win -> execute('let s:closed = v:true') }
+      \   'on_closed': { -> execute('let s:closed += 1') }
       \ })
       call l:win.set_bufnr(s:Buffer.create())
       call l:win.open({
@@ -60,7 +60,7 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
       \   'height': 10,
       \ })
       call popup_close(l:win._winid)
-      call s:expect(s:closed).to_equal(v:true)
+      call s:expect(s:closed).to_equal(1)
     End
 
     It should callback on closed by command (nvim only)
@@ -68,9 +68,9 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
         return
       endif
 
-      let s:closed = v:false
+      let s:closed = 0
       let l:win = s:FloatingWindow.new({
-      \   'on_closed': { win -> execute('let s:closed = v:true') }
+      \   'on_closed': { -> execute('let s:closed += 1') }
       \ })
       call l:win.set_bufnr(s:Buffer.create())
       call l:win.open({
@@ -81,7 +81,7 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
       \ })
       call l:win.enter()
       call execute('close')
-      call s:expect(s:closed).to_equal(v:true)
+      call s:expect(s:closed).to_equal(1)
     End
   End
 

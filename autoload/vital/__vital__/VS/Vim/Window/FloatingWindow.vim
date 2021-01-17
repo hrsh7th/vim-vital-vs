@@ -44,17 +44,17 @@ endfunction
 "
 function! s:_notify_opened(winid, floating_window) abort
   let s:floating_windows[a:winid] = a:floating_window
-  call a:floating_window._on_opened(a:floating_window)
+  call a:floating_window._on_opened()
 endfunction
 
 "
 " _notify_closed
 "
 function! s:_notify_closed() abort
-  for [l:win, l:floating_window] in items(s:floating_windows)
-    if winheight(l:win) == -1
-      call l:floating_window._on_closed(l:floating_window)
-      unlet s:floating_windows[l:win]
+  for [l:winid, l:floating_window] in items(s:floating_windows)
+    if winheight(l:winid) == -1
+      call l:floating_window._on_closed()
+      unlet s:floating_windows[l:winid]
     endif
   endfor
 endfunction
@@ -77,21 +77,12 @@ function! s:FloatingWindow.new(args) abort
 endfunction
 
 "
-" set_bufnr
-"
-" @param {number} bufnr
-"
-function! s:FloatingWindow.set_bufnr(bufnr) abort
-  let self._bufnr = a:bufnr
-endfunction
-
-"
 " get_size
 "
-" @param {number} args.minwidth
-" @param {number} args.maxwidth
-" @param {number} args.minheight
-" @param {number} args.maxheight
+" @param {number?} args.minwidth
+" @param {number?} args.maxwidth
+" @param {number?} args.minheight
+" @param {number?} args.maxheight
 "
 function! s:FloatingWindow.get_size(args) abort
   if self._bufnr is# v:null
@@ -128,6 +119,32 @@ function! s:FloatingWindow.get_size(args) abort
 endfunction
 
 "
+" set_bufnr
+"
+" @param {number} bufnr
+"
+function! s:FloatingWindow.set_bufnr(bufnr) abort
+  let self._bufnr = a:bufnr
+endfunction
+
+"
+" get_bufnr
+"
+function! s:FloatingWindow.get_bufnr() abort
+  return self._bufnr
+endfunction
+
+"
+" get_winid
+"
+function! s:FloatingWindow.get_winid() abort
+  if self.is_visible()
+    return self._winid
+  endif
+  return v:null
+endfunction
+
+"
 " open
 "
 " @param {number} args.row 0-based indexing
@@ -146,7 +163,7 @@ function! s:FloatingWindow.open(args) abort
   if self.is_visible()
     call s:_move(self._winid, l:style)
   else
-    let self._winid = s:_open(self._bufnr, l:style, { -> self._on_closed(self) })
+    let self._winid = s:_open(self._bufnr, l:style, { -> self._on_closed() })
     call s:_notify_opened(self._winid, self)
   endif
 endfunction
@@ -157,7 +174,6 @@ endfunction
 function! s:FloatingWindow.close() abort
   if self.is_visible()
     call s:_close(self._winid)
-    call s:_notify_closed()
   endif
   let self._winid = v:null
 endfunction
@@ -197,6 +213,7 @@ endif
 if has('nvim')
   function! s:_close(win) abort
     call nvim_win_close(a:win, v:true)
+    call s:_notify_closed()
   endfunction
 else
   function! s:_close(win) abort
