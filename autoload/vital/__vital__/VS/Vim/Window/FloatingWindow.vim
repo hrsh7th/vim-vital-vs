@@ -71,6 +71,7 @@ function! s:FloatingWindow.new(args) abort
   return extend(deepcopy(s:FloatingWindow), {
   \   '_winid': v:null,
   \   '_bufnr': v:null,
+  \   '_vars': {},
   \   '_on_opened': get(a:args, 'on_opened', { -> {} }),
   \   '_on_closed': get(a:args, 'on_closed', { -> {} }),
   \ })
@@ -145,6 +146,28 @@ function! s:FloatingWindow.get_winid() abort
 endfunction
 
 "
+" set_var
+"
+" @param {string}  key
+" @param {unknown} value
+"
+function! s:FloatingWindow.set_var(key, value) abort
+  let self._vars[a:key] = a:value
+  if self.is_visible()
+    call setwinvar(self._winid, a:key, a:value)
+  endif
+endfunction
+
+"
+" get_var
+"
+" @param {string} key
+"
+function! s:FloatingWindow.get_var(key) abort
+  return self._vars[a:key]
+endfunction
+
+"
 " open
 "
 " @param {number} args.row 0-based indexing
@@ -164,6 +187,9 @@ function! s:FloatingWindow.open(args) abort
     call s:_move(self._winid, l:style)
   else
     let self._winid = s:_open(self._bufnr, l:style, { -> self._on_closed() })
+    for [l:key, l:value] in items(self._vars)
+      call setwinvar(self._winid, l:key, l:value)
+    endfor
     call s:_notify_opened(self._winid, self)
   endif
 endfunction

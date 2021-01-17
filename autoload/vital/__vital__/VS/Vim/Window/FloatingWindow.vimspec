@@ -26,6 +26,25 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
     End
   End
 
+  Describe #set_var/#get_var
+
+    It should set variables on opened
+      let l:win = s:FloatingWindow.new()
+      call l:win.set_var('test', 1)
+      call l:win.set_bufnr(s:Buffer.create())
+      call s:expect(l:win.get_var('test')).to_equal(1)
+      call l:win.open({
+      \   'row': 1,
+      \   'col': 1,
+      \   'width': 10,
+      \   'height': 10,
+      \ })
+      call s:expect(getwinvar(l:win.get_winid(), 'test')).to_equal(1)
+      call l:win.close()
+    End
+
+  End
+
   Describe #on_closed
     It should callback on closed by method
       let s:closed = 0
