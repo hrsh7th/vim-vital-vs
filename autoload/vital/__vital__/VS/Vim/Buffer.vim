@@ -1,6 +1,6 @@
 let s:Do = { -> {} }
 
-let s:id = 0
+let g:___VS_Vim_Buffer_id = get(g:, '___VS_Vim_Buffer_id', 0)
 
 "
 " get_line_count
@@ -26,8 +26,11 @@ endif
 " create
 "
 function! s:create(...) abort
-  let s:id += 1
-  let l:bufnr = bufnr(printf('VS.Vim.Buffer: %s: %s', s:id, get(a:000, 0, 'VS.Vim.Buffer.Default')), v:true)
+  let g:___VS_Vim_Buffer_id += 1
+  let l:bufnr = bufnr(printf('VS.Vim.Buffer: %s: %s',
+  \   g:___VS_Vim_Buffer_id,
+  \   get(a:000, 0, 'VS.Vim.Buffer.Default')
+  \ ), v:true)
   call s:load(l:bufnr)
   return l:bufnr
 endfunction
