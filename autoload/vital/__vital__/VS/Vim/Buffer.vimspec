@@ -15,7 +15,7 @@ Describe vital#__vital__#VS#Vim#Buffer
     It should return external buffer's line count
       enew!
       let l:bufnr1 = bufnr('%')
-      call setbufline(bufnr1, 1, ['a'])
+      call setbufline(l:bufnr1, 1, ['a'])
       enew!
       let l:bufnr2 = bufnr('%')
       call setbufline(l:bufnr2, 1, ['a', 'b', 'c'])
@@ -23,6 +23,16 @@ Describe vital#__vital__#VS#Vim#Buffer
       call s:expect(l:bufnr1).not.to_equal(l:bufnr2)
       call s:expect(s:Buffer.get_line_count(l:bufnr1)).to_equal(1)
       call s:expect(s:Buffer.get_line_count(l:bufnr2)).to_equal(3)
+    End
+
+  End
+
+  Describe #load
+
+    It should load buffer
+      call s:Buffer.load('test')
+      call setbufline('test', 1, ['1', '2', '3'])
+      call s:expect(getbufline('test', '^', '$')).to_equal(['1', '2', '3'])
     End
 
   End

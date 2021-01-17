@@ -31,13 +31,100 @@ function! s:do(winid, func) abort
 endfunction
 
 "
+" info
+"
+if has('nvim')
+  function! s:info(win) abort
+    let l:info = getwininfo(a:win)[0]
+    return {
+    \   'width': l:info.width,
+    \   'height': l:info.height,
+    \   'topline': l:info.topline,
+    \ }
+  endfunction
+else
+  function! s:info(win) abort
+    if index(s:_get_visible_popup_winids(), a:win) >= 0
+      let l:info = popup_getpos(a:win)
+      return {
+      \   'width': l:info.width,
+      \   'height': l:info.height,
+      \   'topline': l:info.firstline
+      \ }
+    endif
+
+    let l:ctx = {}
+    let l:ctx.info = {}
+    function! l:ctx.callback() abort
+      let self.info.width = winwidth(0)
+      let self.info.height = winheight(0)
+      let self.info.topline = line('w0')
+    endfunction
+    call s:do(a:win, { -> l:ctx.callback() })
+    return l:ctx.info
+  endfunction
+endif
+
+"
+" find
+"
+function! s:find(callback) abort
+  let l:winids = []
+  let l:winids += map(range(1, tabpagewinnr(tabpagenr(), '$')), 'win_getid(v:val)')
+  let l:winids += s:_get_visible_popup_winids()
+  return filter(l:winids, 'a:callback(v:val)')
+endfunction
+
+"
+" scroll
+"
+function! s:scroll(winid, topline) abort
+  let l:ctx = {}
+  function! l:ctx.callback(winid, topline) abort
+    let l:wininfo = s:info(a:winid)
+    let l:topline = a:topline
+    let l:topline = max([l:topline, 1])
+    let l:topline = min([l:topline, line('$') - l:wininfo.height + 1])
+
+    if l:topline == l:wininfo.topline
+      return
+    endif
+
+    if index(s:_get_visible_popup_winids(), a:winid) >= 0
+      call popup_setoptions(a:winid, {
+      \   'firstline': l:topline,
+      \ })
+    else
+      let l:delta = l:topline - l:wininfo.topline
+      let l:key = l:delta > 0 ? "\<C-e>" : "\<C-y>"
+      execute printf('noautocmd silent normal! %s', repeat(l:key, abs(l:delta)))
+    endif
+  endfunction
+  call s:do(a:winid, { -> l:ctx.callback(a:winid, a:topline) })
+endfunction
+
+"
 " screenpos
 "
+" @param {[number, number]} pos - position on the current buffer.
+"
 function! s:screenpos(pos) abort
-  let l:pos = getpos('.')
-  let l:scroll_x = (l:pos[2] + l:pos[3]) - wincol()
-  let l:scroll_y = l:pos[1] - winline()
+  let l:ui_x = wincol() - col('.')
+  let l:view = winsaveview()
+  let l:scroll_x = l:view.leftcol
+  let l:scroll_y = l:view.topline - 1
   let l:winpos = win_screenpos(win_getid())
-  return [l:winpos[0] + (a:pos[0] - l:scroll_y) - 2, l:winpos[1] + (a:pos[1] - l:scroll_x) - 2]
+  let l:origin1 = [l:winpos[0] + (a:pos[0] - l:scroll_y) - 1, l:winpos[1] + (a:pos[1] + a:pos[2] + l:ui_x - l:scroll_x) - 1]
+  return [l:origin1[0] - 1, l:origin1[1] - 1]
+endfunction
+
+"
+" _get_visible_popup_winids
+"
+function! s:_get_visible_popup_winids() abort
+  if !exists('*popup_list')
+    return []
+  endif
+  return filter(popup_list(), 'popup_getpos(v:val).visible')
 endfunction
 

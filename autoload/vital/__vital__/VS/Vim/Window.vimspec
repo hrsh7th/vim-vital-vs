@@ -1,7 +1,17 @@
 let s:expect = themis#helper('expect')
+let s:Buffer = vital#vital#import('VS.Vim.Buffer')
 let s:Window = vital#vital#import('VS.Vim.Window')
+let s:FloatingWindow = vital#vital#import('VS.Vim.Window.FloatingWindow')
 
 Describe vital#__vital__#VS#Vim#Window
+
+  Before each
+    tabnew!
+  End
+
+  After each
+    tabclose!
+  End
 
   Describe #do
 
@@ -16,7 +26,89 @@ Describe vital#__vital__#VS#Vim#Window
       normal! 1G1|v$
       call s:expect(s:Window.do(l:winid1, { -> getline('1') })).to_equal('foo')
       call s:expect(mode()).to_equal('v')
-      quit!
+    End
+
+  End
+
+  Describe #info
+
+    It should return normal window info
+      call setline('%', ['foo', 'bar'])
+      call cursor([2, 2])
+      call s:expect(s:Window.info(win_getid())).to_equal({
+      \   'width': winwidth(0),
+      \   'height': winheight(0),
+      \   'topline': 1,
+      \ })
+    End
+
+    It should return floating window info
+      if !s:FloatingWindow.is_available()
+        return
+      endif
+
+      let l:bufnr = s:Buffer.create()
+      call setbufline(l:bufnr, 1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+
+      let l:win = s:FloatingWindow.new()
+      call l:win.set_bufnr(l:bufnr)
+      call l:win.open({
+      \   'row': 0,
+      \   'col': 0,
+      \   'width': 10,
+      \   'height': 10,
+      \ })
+
+      call s:expect(s:Window.info(l:win._winid)).to_equal({
+      \   'width': 10,
+      \   'height': 10,
+      \   'topline': 1,
+      \ })
+
+      call l:win.close()
+    End
+
+  End
+
+  Describe #scroll
+
+    It should scroll normal window
+      vnew!
+      resize 5
+      call setline(1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+
+      let l:win = win_getid()
+      call s:Window.scroll(l:win, 1)
+      call s:expect(s:Window.info(l:win).topline).to_equal(1)
+      call s:Window.scroll(l:win, s:Window.info(l:win).topline + 4)
+      call s:expect(s:Window.info(l:win).topline).to_equal(5)
+      call s:Window.scroll(l:win, s:Window.info(l:win).topline + 4)
+      call s:expect(s:Window.info(l:win).topline).to_equal(7)
+    End
+
+    It should scroll floating window
+      if !s:FloatingWindow.is_available()
+        return
+      endif
+
+      let l:bufnr = s:Buffer.create()
+      call setbufline(l:bufnr, 1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+
+      let l:win = s:FloatingWindow.new()
+      call l:win.set_bufnr(l:bufnr)
+      call l:win.open({
+      \   'row': 0,
+      \   'col': 0,
+      \   'width': &columns,
+      \   'height': 5,
+      \ })
+
+      call s:Window.scroll(l:win._winid, 1)
+      call s:expect(s:Window.info(l:win._winid).topline).to_equal(1)
+      call s:Window.scroll(l:win._winid, s:Window.info(l:win._winid).topline + 4)
+      call s:expect(s:Window.info(l:win._winid).topline).to_equal(5)
+      call s:Window.scroll(l:win._winid, s:Window.info(l:win._winid).topline + 4)
+      call s:expect(s:Window.info(l:win._winid).topline).to_equal(7)
     End
 
   End

@@ -1,4 +1,5 @@
 let s:expect = themis#helper('expect')
+let s:Buffer = vital#vital#import('VS.Vim.Buffer')
 let s:Window = vital#vital#import('VS.Vim.Window')
 let s:FloatingWindow = vital#vital#import('VS.Vim.Window.FloatingWindow')
 
@@ -12,15 +13,94 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
     It should return visibility of the floating window
       let l:win = s:FloatingWindow.new()
       call s:expect(l:win.is_visible()).to_equal(v:false)
+      call l:win.set_bufnr(s:Buffer.create())
       call l:win.open({
       \   'row': 1,
       \   'col': 1,
-      \   'filetype': 'text',
-      \   'contents': ['Hello, World!'],
+      \   'width': 10,
+      \   'height': 10,
       \ })
       call s:expect(l:win.is_visible()).to_equal(v:true)
       call l:win.close()
       call s:expect(l:win.is_visible()).to_equal(v:false)
+    End
+  End
+
+  Describe #set_var/#get_var
+
+    It should set variables on opened
+      let l:win = s:FloatingWindow.new()
+      call l:win.set_var('test', 1)
+      call l:win.set_bufnr(s:Buffer.create())
+      call s:expect(l:win.get_var('test')).to_equal(1)
+      call l:win.open({
+      \   'row': 1,
+      \   'col': 1,
+      \   'width': 10,
+      \   'height': 10,
+      \ })
+      call s:expect(getwinvar(l:win.get_winid(), 'test')).to_equal(1)
+      call l:win.close()
+    End
+
+  End
+
+  Describe #on_closed
+    It should callback on closed by method
+      let s:closed = 0
+      let l:win = s:FloatingWindow.new({
+      \   'on_closed': { -> execute('let s:closed += 1') }
+      \ })
+      call l:win.set_bufnr(s:Buffer.create())
+      call l:win.open({
+      \   'row': 1,
+      \   'col': 1,
+      \   'width': 10,
+      \   'height': 10,
+      \ })
+      call l:win.close()
+      call s:expect(s:closed).to_equal(1)
+    End
+
+    It should callback on closed by popup_close (vim only)
+      if has('nvim')
+        return
+      endif
+
+      let s:closed = 0
+      let l:win = s:FloatingWindow.new({
+      \   'on_closed': { -> execute('let s:closed += 1') }
+      \ })
+      call l:win.set_bufnr(s:Buffer.create())
+      call l:win.open({
+      \   'row': 1,
+      \   'col': 1,
+      \   'width': 10,
+      \   'height': 10,
+      \ })
+      call popup_close(l:win._winid)
+      call s:expect(s:closed).to_equal(1)
+    End
+
+    It should callback on closed by command (nvim only)
+      if !has('nvim')
+        return
+      endif
+
+      let s:closed = 0
+      let l:win = s:FloatingWindow.new({
+      \   'on_closed': { -> execute('let s:closed += 1') }
+      \ })
+      call l:win.set_bufnr(s:Buffer.create())
+      call l:win.open({
+      \   'row': 1,
+      \   'col': 1,
+      \   'width': 10,
+      \   'height': 10,
+      \ })
+      call l:win.enter()
+      call execute('close')
+      call s:expect(s:closed).to_equal(1)
     End
   End
 
