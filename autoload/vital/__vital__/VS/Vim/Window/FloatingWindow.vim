@@ -150,18 +150,7 @@ endfunction
 "
 function! s:FloatingWindow.info() abort
   if self.is_visible()
-    let l:ctx = {}
-    let l:ctx.info = {}
-    function! l:ctx.callback(winid) abort
-      let l:info = getwininfo(a:winid)[0]
-      let self.info.row = l:info.winrow - !has('nvim')
-      let self.info.col = l:info.wincol - !has('nvim')
-      let self.info.width = l:info.width
-      let self.info.height = l:info.height
-      let self.info.topline = l:info.topline
-    endfunction
-    call s:Window.do(self._winid, { -> l:ctx.callback(self._winid) })
-    return l:ctx.info
+    return s:_info(self._winid)
   endif
   return v:null
 endfunction
@@ -327,6 +316,30 @@ if has('nvim')
 else
   function! s:_exists(winid) abort
     return type(a:winid) == type(0) && winheight(a:winid) != -1
+  endfunction
+endif
+
+if has('nvim')
+  function! s:_info(winid) abort
+    let l:info = getwininfo(a:winid)[0]
+    return {
+    \   'row': l:info.winrow,
+    \   'col': l:info.wincol,
+    \   'width': l:info.width,
+    \   'height': l:info.height,
+    \   'topline': l:info.topline,
+    \ }
+  endfunction
+else
+  function! s:_info(winid) abort
+    let l:pos = popup_getpos(a:winid)
+    return {
+    \   'row': l:pos.core_line - 1,
+    \   'col': l:pos.core_col - 1,
+    \   'width': l:pos.core_width,
+    \   'height': l:pos.core_height,
+    \   'topline': l:pos.firstline,
+    \ }
   endfunction
 endif
 
