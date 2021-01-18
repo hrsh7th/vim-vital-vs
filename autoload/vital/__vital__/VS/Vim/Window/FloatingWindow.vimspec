@@ -45,6 +45,29 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
 
   End
 
+  Describe #info
+
+    It should return floating window info
+      let l:win = s:FloatingWindow.new()
+      call l:win.set_bufnr(s:Buffer.create())
+      call l:win.open({
+      \   'row': 1,
+      \   'col': 1,
+      \   'width': 10,
+      \   'height': 10,
+      \ })
+      call s:expect(l:win.info()).to_equal({
+      \   'row': 1,
+      \   'col': 1,
+      \   'width': 10,
+      \   'height': 10,
+      \   'topline': 1,
+      \ })
+      call l:win.close()
+    End
+
+  End
+
   Describe #on_closed
     It should callback on closed by method
       let s:closed = 0
@@ -80,6 +103,32 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
       \ })
       call popup_close(l:win._winid)
       call s:expect(s:closed).to_equal(1)
+    End
+
+    It should not callback on move with other bufnr (vim only)
+      if has('nvim')
+        return
+      endif
+
+      let s:closed = 0
+      let l:win = s:FloatingWindow.new({
+      \   'on_closed': { -> execute('let s:closed += 1') }
+      \ })
+      call l:win.set_bufnr(s:Buffer.create())
+      call l:win.open({
+      \   'row': 1,
+      \   'col': 1,
+      \   'width': 10,
+      \   'height': 10,
+      \ })
+      call l:win.set_bufnr(s:Buffer.create())
+      call l:win.open({
+      \   'row': 1,
+      \   'col': 1,
+      \   'width': 10,
+      \   'height': 10,
+      \ })
+      call s:expect(s:closed).to_equal(0)
     End
 
     It should callback on closed by command (nvim only)
