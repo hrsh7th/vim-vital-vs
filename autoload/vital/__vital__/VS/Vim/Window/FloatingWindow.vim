@@ -334,8 +334,8 @@ else
   function! s:_info(winid) abort
     let l:pos = popup_getpos(a:winid)
     return {
-    \   'row': l:pos.core_line - 1,
-    \   'col': l:pos.core_col - 1,
+    \   'row': l:pos.core_line,
+    \   'col': l:pos.core_col,
     \   'width': l:pos.core_width,
     \   'height': l:pos.core_height,
     \   'topline': l:pos.firstline,
@@ -351,11 +351,10 @@ if has('nvim')
     let l:style = s:_resolve_style(a:style)
     return {
     \   'relative': 'editor',
+    \   'row': l:style.row - 1,
+    \   'col': l:style.col - 1,
     \   'width': l:style.width,
-    \   'anchor': 'NW',
     \   'height': l:style.height,
-    \   'row': l:style.row,
-    \   'col': l:style.col,
     \   'focusable': v:true,
     \   'style': 'minimal',
     \ }
@@ -364,8 +363,8 @@ else
   function! s:_style(style) abort
     let l:style = s:_resolve_style(a:style)
     return {
-    \   'line': l:style.row + 1,
-    \   'col': l:style.col + 1,
+    \   'line': l:style.row,
+    \   'col': l:style.col,
     \   'pos': 'topleft',
     \   'moved': [0, 0, 0],
     \   'scrollbar': 0,

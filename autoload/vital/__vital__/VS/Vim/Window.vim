@@ -109,13 +109,17 @@ endfunction
 " @param {[number, number]} pos - position on the current buffer.
 "
 function! s:screenpos(pos) abort
-  let l:ui_x = wincol() - col('.')
+  let l:y = a:pos[0]
+  let l:x = a:pos[1] + get(a:pos, 2, 0)
+
   let l:view = winsaveview()
   let l:scroll_x = l:view.leftcol
-  let l:scroll_y = l:view.topline - 1
+  let l:scroll_y = l:view.topline
+
   let l:winpos = win_screenpos(win_getid())
-  let l:origin1 = [l:winpos[0] + (a:pos[0] - l:scroll_y) - 1, l:winpos[1] + (a:pos[1] + a:pos[2] + l:ui_x - l:scroll_x) - 1]
-  return [l:origin1[0] - 1, l:origin1[1] - 1]
+  let l:y = l:winpos[0] + l:y - l:scroll_y
+  let l:x = l:winpos[1] + l:x - l:scroll_x
+  return [l:y, l:x + (wincol() - virtcol('.')) - 1]
 endfunction
 
 "
