@@ -104,7 +104,7 @@ function! s:scroll(winid, topline) abort
       return
     endif
 
-    if index(s:_get_visible_popup_winids(), a:winid) >= 0
+    if !has('nvim') && s:is_floating(a:winid)
       call popup_setoptions(a:winid, {
       \   'firstline': l:topline,
       \ })
