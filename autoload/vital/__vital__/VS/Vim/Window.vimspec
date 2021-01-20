@@ -77,6 +77,10 @@ Describe vital#__vital__#VS#Vim#Window
     End
 
     It should return correct value with floating window
+      if !s:FloatingWindow.is_available()
+        return
+      endif
+
       let l:win = s:FloatingWindow.new()
       call l:win.set_bufnr(s:Buffer.create())
       call l:win.open({
