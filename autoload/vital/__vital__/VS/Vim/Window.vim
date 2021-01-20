@@ -34,8 +34,8 @@ endfunction
 " info
 "
 if has('nvim')
-  function! s:info(win) abort
-    let l:info = getwininfo(a:win)[0]
+  function! s:info(winid) abort
+    let l:info = getwininfo(a:winid)[0]
     return {
     \   'width': l:info.width,
     \   'height': l:info.height,
@@ -43,9 +43,9 @@ if has('nvim')
     \ }
   endfunction
 else
-  function! s:info(win) abort
-    if index(s:_get_visible_popup_winids(), a:win) >= 0
-      let l:info = popup_getpos(a:win)
+  function! s:info(winid) abort
+    if s:is_floating(a:winid)
+      let l:info = popup_getpos(a:winid)
       return {
       \   'width': l:info.width,
       \   'height': l:info.height,
@@ -60,7 +60,7 @@ else
       let self.info.height = winheight(0)
       let self.info.topline = line('w0')
     endfunction
-    call s:do(a:win, { -> l:ctx.callback() })
+    call s:do(a:winid, { -> l:ctx.callback() })
     return l:ctx.info
   endfunction
 endif
@@ -85,7 +85,7 @@ if has('nvim')
   endfunction
 else
   function! s:is_floating(winid) abort
-    return index(s:_get_visible_popup_winids(), a:winid) >= 0
+    return winheight(a:winid) != -1 && win_id2win(a:winid) == 0
   endfunction
 endif
 
@@ -140,24 +140,9 @@ endfunction
 " _get_visible_popup_winids
 "
 function! s:_get_visible_popup_winids() abort
-  if has('nvim')
+  if !exists('*popup_list')
     return []
   endif
-
-  if exists('*popup_list')
-    return filter(popup_list(), 'popup_getpos(v:val).visible')
-  endif
-
-  let l:winids = []
-  for l:winid in  map(range(1, tabpagewinnr(tabpagenr(), '$')), 'win_getid(v:val)')
-    try
-      let l:pos = popup_getpos(l:winid)
-      if !empty(l:pos) && l:pos.visible
-        let l:winids += [l:winid]
-      endif
-    catch /.*/
-    endtry
-  endfor
-  return l:winids
+  return filter(popup_list(), 'popup_getpos(v:val).visible')
 endfunction
 

@@ -77,7 +77,7 @@ Describe vital#__vital__#VS#Vim#Window
     End
 
     It should return correct value with floating window
-      if !s:FloatingWindow.is_available()
+      if !exists('*popup_list')
         return
       endif
 
