@@ -84,6 +84,7 @@ endfunction
 " @param {number?} args.maxwidth
 " @param {number?} args.minheight
 " @param {number?} args.maxheight
+" @param {boolean?} args.wrap
 "
 function! s:FloatingWindow.get_size(args) abort
   if self._bufnr is# v:null
@@ -106,10 +107,14 @@ function! s:FloatingWindow.get_size(args) abort
   let l:width = l:maxwidth == -1 ? l:width : min([l:maxwidth, l:width])
 
   " height
-  let l:height = 0
-  for l:line in l:lines
-    let l:height += max([1, float2nr(ceil(strdisplaywidth(l:line) / str2float('' . l:width)))])
-  endfor
+  if get(a:args, 'wrap', get(self._vars, '&wrap', 0))
+    let l:height = 0
+    for l:line in l:lines
+      let l:height += max([1, float2nr(ceil(strdisplaywidth(l:line) / str2float('' . l:width)))])
+    endfor
+  else
+    let l:height = len(l:lines)
+  endif
   let l:height = l:minheight == -1 ? l:height : max([l:minheight, l:height])
   let l:height = l:maxheight == -1 ? l:height : min([l:maxheight, l:height])
 
@@ -239,14 +244,14 @@ endfunction
 " open
 "
 if has('nvim')
-  function! s:_open(buf, style, callback) abort
-    let l:winid = nvim_open_win(a:buf, v:false, s:_style(a:style))
+  function! s:_open(bufnr, style, callback) abort
+    let l:winid = nvim_open_win(a:bufnr, v:false, s:_style(a:bufnr, a:style))
     call s:Window.scroll(l:winid, a:style.topline)
     return l:winid
   endfunction
 else
-  function! s:_open(buf, style, callback) abort
-    return popup_create(a:buf, extend(s:_style(a:style), {
+  function! s:_open(bufnr, style, callback) abort
+    return popup_create(a:bufnr, extend(s:_style(a:bufnr, a:style), {
     \  'callback': a:callback,
     \ }, 'force'))
   endfunction
@@ -366,6 +371,7 @@ else
     \   'line': l:style.row,
     \   'col': l:style.col,
     \   'pos': 'topleft',
+    \   'wrap': v:false,
     \   'moved': [0, 0, 0],
     \   'scrollbar': 0,
     \   'maxwidth': l:style.width,
@@ -374,6 +380,8 @@ else
     \   'minheight': l:style.height,
     \   'tabpage': 0,
     \   'firstline': l:style.topline,
+    \   'padding': [0, 0, 0, 0],
+    \   'fixed': v:true,
     \ }
   endfunction
 endif

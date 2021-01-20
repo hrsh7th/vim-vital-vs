@@ -76,6 +76,20 @@ function! s:find(callback) abort
 endfunction
 
 "
+" is_floating
+"
+if has('nvim')
+  function! s:is_floating(winid) abort
+    let l:config = nvim_win_get_config(a:winid)
+    return empty(l:config) || !empty(get(l:config, 'relative', ''))
+  endfunction
+else
+  function! s:is_floating(winid) abort
+    return index(popup_list(), a:winid) >= 0
+  endfunction
+endif
+
+"
 " scroll
 "
 function! s:scroll(winid, topline) abort
