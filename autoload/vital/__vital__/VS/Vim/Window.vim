@@ -85,7 +85,7 @@ if has('nvim')
   endfunction
 else
   function! s:is_floating(winid) abort
-    return index(popup_list(), a:winid) >= 0
+    return index(s:_get_visible_popup_winids(), a:winid) >= 0
   endfunction
 endif
 
