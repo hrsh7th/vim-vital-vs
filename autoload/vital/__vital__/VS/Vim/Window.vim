@@ -140,6 +140,10 @@ endfunction
 " _get_visible_popup_winids
 "
 function! s:_get_visible_popup_winids() abort
+  if has('nvim')
+    return []
+  endif
+
   if exists('*popup_list')
     return filter(popup_list(), 'popup_getpos(v:val).visible')
   endif
