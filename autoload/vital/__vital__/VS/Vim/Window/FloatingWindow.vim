@@ -245,13 +245,13 @@ endfunction
 "
 if has('nvim')
   function! s:_open(bufnr, style, callback) abort
-    let l:winid = nvim_open_win(a:bufnr, v:false, s:_style(a:bufnr, a:style))
+    let l:winid = nvim_open_win(a:bufnr, v:false, s:_style(a:style))
     call s:Window.scroll(l:winid, a:style.topline)
     return l:winid
   endfunction
 else
   function! s:_open(bufnr, style, callback) abort
-    return popup_create(a:bufnr, extend(s:_style(a:bufnr, a:style), {
+    return popup_create(a:bufnr, extend(s:_style(a:style), {
     \  'callback': a:callback,
     \ }, 'force'))
   endfunction
