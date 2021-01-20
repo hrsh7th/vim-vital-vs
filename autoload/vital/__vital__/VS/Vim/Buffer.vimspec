@@ -30,9 +30,9 @@ Describe vital#__vital__#VS#Vim#Buffer
   Describe #load
 
     It should load buffer
-      call s:Buffer.load('test')
-      call setbufline('test', 1, ['1', '2', '3'])
-      call s:expect(getbufline('test', '^', '$')).to_equal(['1', '2', '3'])
+      let l:bufnr = s:Buffer.load('test')
+      call setbufline(l:bufnr, 1, ['1', '2', '3'])
+      call s:expect(getbufline(l:bufnr, '^', '$')).to_equal(['1', '2', '3'])
     End
 
   End

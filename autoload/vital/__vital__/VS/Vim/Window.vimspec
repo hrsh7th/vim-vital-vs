@@ -70,6 +70,30 @@ Describe vital#__vital__#VS#Vim#Window
 
   End
 
+  Describe #is_floating
+
+    It should return correct value with normal window
+      call s:expect(s:Window.is_floating(win_getid())).to_equal(v:false)
+    End
+
+    It should return correct value with floating window
+      if !s:FloatingWindow.is_available()
+        return
+      endif
+
+      let l:win = s:FloatingWindow.new()
+      call l:win.set_bufnr(s:Buffer.create())
+      call l:win.open({
+      \   'row': 0,
+      \   'col': 0,
+      \   'width': 10,
+      \   'height': 10,
+      \ })
+      call s:expect(s:Window.is_floating(l:win.get_winid())).to_equal(v:true)
+    End
+
+  End
+
   Describe #scroll
 
     It should scroll normal window
