@@ -24,7 +24,7 @@ function! s:is_available() abort
   if has('nvim')
     return v:true
   endif
-  return exists('*popup_create') && exists('*popup_close') && exists('*popup_move') && exists('*popup_getpos') && exists('*popup_list')
+  return exists('*popup_create') && exists('*popup_close') && exists('*popup_move') && exists('*popup_getpos')
 endfunction
 
 "

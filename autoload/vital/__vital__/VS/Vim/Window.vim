@@ -140,9 +140,10 @@ endfunction
 " _get_visible_popup_winids
 "
 function! s:_get_visible_popup_winids() abort
-  if !exists('*popup_list')
-    return []
+  if exists('*popup_list')
+    return filter(popup_list(), 'popup_getpos(v:val).visible')
   endif
-  return filter(popup_list(), 'popup_getpos(v:val).visible')
+  let l:winids = map(range(1, tabpagewinnr(tabpagenr(), '$')), 'win_getid(v:val)')
+  return filter(l:winids, '!empty(popup_getpos(v:val))')
 endfunction
 
