@@ -7,10 +7,10 @@ endfunction
 "
 " confirm
 "
-" @param {v:completed_item} completed_item
-" @param {LSP.Position} request_position
-" @param {LSP.CompletionItem} completion_item
-" @param {(args: { body: string; }) => void} snippet
+" @param {LSP.Position}                       args.suggest_position
+" @param {LSP.Position}                       args.request_position
+" @param {LSP.CompletionItem}                 args.completion_item
+" @param {(args: { body: string; }) => void?} args.expand_snippet
 "
 " # Pre condition
 " This method will work only accepting item via `<C-y>` and the cursor position must be the end of completed word.
@@ -34,23 +34,25 @@ endfunction
 "     call |getbufline
 "
 "
-function! s:confirm(completed_item, request_position, completion_item, ...) abort
-  let l:Snippet = get(a:000, 0, v:null)
+function! s:confirm(args) abort
+  let l:suggest_position = a:args.suggest_position
+  let l:request_position = a:args.request_position
   let l:current_position = s:Position.cursor()
-  let l:suggest_position = { 'line': l:current_position.line, 'character': l:current_position.character - strchars(a:completed_item.word) }
+  let l:completion_item = a:args.completion_item
+  let l:ExpandSnippet = get(a:args, 'expand_snippet', v:null)
 
   " 1. Restore state of the timing when `textDocument/completion` was sent if expansion is needed
-  let l:replacement = s:_get_replacement(l:suggest_position, l:current_position, a:request_position, a:completion_item)
+  let l:replacement = s:_get_replacement(l:suggest_position, l:request_position, l:current_position, l:completion_item)
   if !empty(l:replacement)
     call s:TextEdit.apply('%', [{
-    \   'range': { 'start': a:request_position, 'end': l:current_position },
+    \   'range': { 'start': l:request_position, 'end': l:current_position },
     \   'newText': ''
     \ }])
   endif
 
   " 2. Apply additionalTextEdits
-  if type(get(a:completion_item, 'additionalTextEdits', v:null)) == type([])
-    call s:TextEdit.apply('%', a:completion_item.additionalTextEdits)
+  if type(get(l:completion_item, 'additionalTextEdits', v:null)) == type([])
+    call s:TextEdit.apply('%', l:completion_item.additionalTextEdits)
   endif
 
   " 3. Apply expansion
@@ -66,9 +68,9 @@ function! s:confirm(completed_item, request_position, completion_item, ...) abor
     \ }
 
     " Snippet.
-    if l:replacement.is_snippet && !empty(l:Snippet)
+    if l:replacement.is_snippet && !empty(l:ExpandSnippet)
       call s:TextEdit.apply('%', [{ 'range': l:range, 'newText': '' }])
-      call l:Snippet({ 'body': l:replacement.new_text })
+      call l:ExpandSnippet({ 'body': l:replacement.new_text })
 
     " TextEdit.
     else
@@ -87,7 +89,7 @@ endfunction
 "
 " _get_replacement
 "
-function! s:_get_replacement(suggest_position, current_position, request_position, completion_item) abort
+function! s:_get_replacement(suggest_position, request_position, current_position, completion_item) abort
   let l:line = getline('.')
   let l:is_snippet = get(a:completion_item, 'insertTextFormat', 1) == 2
   if type(get(a:completion_item, 'textEdit', v:null)) == type({})
