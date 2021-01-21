@@ -106,7 +106,7 @@ function! s:_get_replacement(suggest_position, current_position, request_positio
       \   'is_snippet': l:is_snippet,
       \ }
     endif
-  elseif l:is_snippet
+  else
     let l:inserted = strcharpart(l:line, a:suggest_position.character, a:current_position.character - a:suggest_position.character)
     let l:new_text = get(a:completion_item, 'insertText', a:completion_item.label)
     if s:_trim_tabstop(l:new_text) !=# l:inserted
@@ -114,7 +114,7 @@ function! s:_get_replacement(suggest_position, current_position, request_positio
       \   'overflow_before': a:request_position.character - a:suggest_position.character,
       \   'overflow_after': 0,
       \   'new_text': l:new_text,
-      \   'is_snippet': v:true,
+      \   'is_snippet': l:is_snippet,
       \ }
     endif
   endif

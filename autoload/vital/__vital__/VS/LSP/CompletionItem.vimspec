@@ -1,0 +1,249 @@
+let s:expect = themis#helper('expect')
+let s:Text = vital#vital#import('VS.LSP.Text')
+let s:Position = vital#vital#import('VS.LSP.Position')
+let s:TextEdit = vital#vital#import('VS.LSP.TextEdit')
+let s:CompletionItem = vital#vital#import('VS.LSP.CompletionItem')
+
+Describe vital#__vital__#VS#LSP#CompletionItem
+
+  Before each
+    enew!
+    setlocal virtualedit=onemore
+  End
+
+  After each
+    bdelete!
+  End
+
+  Describe #confirm
+
+    Describe TextEdit
+
+      Describe snippet
+        It should not expand
+          let [l:completed_item, l:request_position] = s:prepare(['call ^getbufl!ine#'])
+          let l:changedtick = b:changedtick
+          let l:buflines = getline('^', '$')
+          call s:CompletionItem.confirm(l:completed_item, l:request_position, {
+          \   'insertTextFormat': 2,
+          \   'textEdit': s:text_edit([1, 6], [1, 13], 'getbufline$0')
+          \ }, { args -> s:snippet(args.body) })
+          call s:expect(l:buflines).to_equal(getline('^', '$'))
+          call s:expect(l:changedtick).to_equal(b:changedtick)
+        End
+
+        It should expand as insert
+          let [l:completed_item, l:request_position] = s:prepare(['call ^getbuf!line#'])
+          call s:CompletionItem.confirm(l:completed_item, l:request_position, {
+          \   'insertTextFormat': 2,
+          \   'textEdit': s:text_edit([1, 12], [1, 12], 'info$0')
+          \ }, { args -> s:snippet(args.body) })
+          call s:expect(getline('^', '$')).to_equal(['call getbufinfo'])
+        End
+
+        It should expand as replace
+          let [l:completed_item, l:request_position] = s:prepare(['call ^getbuf!#line'])
+          call s:CompletionItem.confirm(l:completed_item, l:request_position, {
+          \   'insertTextFormat': 2,
+          \   'textEdit': s:text_edit([1, 6], [1, 16], 'getbufinfo$0')
+          \ }, { args -> s:snippet(args.body) })
+          call s:expect(getline('^', '$')).to_equal(['call getbufinfo'])
+        End
+      End
+
+      Describe plain
+        It should not expand
+          let [l:completed_item, l:request_position] = s:prepare(['call ^getbufl!ine#'])
+          let l:changedtick = b:changedtick
+          let l:buflines = getline('^', '$')
+          call s:CompletionItem.confirm(l:completed_item, l:request_position, {
+          \   'textEdit': s:text_edit([1, 6], [1, 13], 'getbufline')
+          \ }, { args -> s:snippet(args.body) })
+          call s:expect(l:buflines).to_equal(getline('^', '$'))
+          call s:expect(l:changedtick).to_equal(b:changedtick)
+        End
+
+        It should expand as insert
+          let [l:completed_item, l:request_position] = s:prepare(['call ^getbuf!line#'])
+          call s:CompletionItem.confirm(l:completed_item, l:request_position, {
+          \   'textEdit': s:text_edit([1, 12], [1, 12], 'info')
+          \ }, { args -> s:snippet(args.body) })
+          call s:expect(getline('^', '$')).to_equal(['call getbufinfo'])
+        End
+
+        It should expand as replace
+          let [l:completed_item, l:request_position] = s:prepare(['call ^getbuf!#line'])
+          call s:CompletionItem.confirm(l:completed_item, l:request_position, {
+          \   'textEdit': s:text_edit([1, 6], [1, 16], 'getbufinfo')
+          \ }, { args -> s:snippet(args.body) })
+          call s:expect(getline('^', '$')).to_equal(['call getbufinfo'])
+        End
+      End
+
+    End
+
+    Describe insertText
+
+      Describe snippet
+        It should not expand
+          let [l:completed_item, l:request_position] = s:prepare(['call ^getbufl!ine#'])
+          let l:changedtick = b:changedtick
+          let l:buflines = getline('^', '$')
+          call s:CompletionItem.confirm(l:completed_item, l:request_position, {
+          \   'label': '',
+          \   'insertTextFormat': 2,
+          \   'insertText': 'getbufline$0'
+          \ }, { args -> s:snippet(args.body) })
+          call s:expect(l:buflines).to_equal(getline('^', '$'))
+          call s:expect(l:changedtick).to_equal(b:changedtick)
+        End
+
+        It should expand
+          let [l:completed_item, l:request_position] = s:prepare(['call ^getbuf!line#'])
+          call s:CompletionItem.confirm(l:completed_item, l:request_position, {
+          \   'label': '',
+          \   'insertTextFormat': 2,
+          \   'insertText': 'getbufinfo$0'
+          \ }, { args -> s:snippet(args.body) })
+          call s:expect(getline('^', '$')).to_equal(['call getbufinfo'])
+        End
+      End
+
+      Describe plain
+        It should not expand
+          let [l:completed_item, l:request_position] = s:prepare(['call ^getbufl!ine#'])
+          let l:changedtick = b:changedtick
+          let l:buflines = getline('^', '$')
+          call s:CompletionItem.confirm(l:completed_item, l:request_position, {
+          \   'label': '',
+          \   'insertText': 'getbufline'
+          \ }, { args -> s:snippet(args.body) })
+          call s:expect(l:buflines).to_equal(getline('^', '$'))
+          call s:expect(l:changedtick).to_equal(b:changedtick)
+        End
+
+        It should expand
+          let [l:completed_item, l:request_position] = s:prepare(['call ^getbuf!line#'])
+          call s:CompletionItem.confirm(l:completed_item, l:request_position, {
+          \   'label': '',
+          \   'insertText': 'getbufinfo'
+          \ }, { args -> s:snippet(args.body) })
+          call s:expect(getline('^', '$')).to_equal(['call getbufinfo'])
+        End
+      End
+
+    End
+
+    Describe realworld
+
+      It rust-analyzer 1
+        let [l:completed_item, l:request_position] = s:prepare([
+        \   'fn main() {',
+        \   '    "aiueo"',
+        \   '        .^box!#',
+        \   '}',
+        \ ])
+        call s:CompletionItem.confirm(l:completed_item, l:request_position, {
+        \   'label': 'box',
+        \   'insertTextFormat': 2,
+        \   'additionalTextEdits': [{'range': {'end': {'character': 9, 'line': 2}, 'start': {'character': 4, 'line': 1}}, 'newText': ''}],
+        \   'textEdit': {'range': {'end': {'character': 12, 'line': 2}, 'start': {'character': 9, 'line': 2}}, 'newText': 'Box::new("aiueo")'},
+        \ }, { args -> s:snippet(args.body) })
+        call s:expect(getline('^', '$')).to_equal([
+        \   'fn main() {',
+        \   '    Box::new("aiueo")',
+        \   '}'
+        \ ])
+      End
+
+      It rust-analyzer 2
+        let [l:completed_item, l:request_position] = s:prepare([
+        \   'fn main() {',
+        \   '    ^PathBuf!#',
+        \   '}',
+        \ ])
+        call s:CompletionItem.confirm(l:completed_item, l:request_position, {
+        \   'label': 'std::path::PathBuf',
+        \   'textEdit': {'range': {'end': {'character': 11, 'line': 1}, 'start': {'character': 4, 'line': 1}}, 'newText': 'PathBuf'},
+        \   'additionalTextEdits': [{'range': {'end': {'character': 0, 'line': 0}, 'start': {'character': 0, 'line': 0}}, 'newText': 'use std::path::PathBuf;'}, {'range': {'end': {'character': 0, 'line': 0}, 'start': {'character': 0, 'line': 0}}, 'newText': "\n\n"}],
+        \   'insertTextFormat': 1,
+        \ }, { args -> s:snippet(args.body) })
+        call s:expect(getline('^', '$')).to_equal([
+        \   'use std::path::PathBuf;',
+        \   '',
+        \   'fn main() {',
+        \   '    PathBuf',
+        \   '}'
+        \ ])
+      End
+
+      It vscode-html-language-server 1
+        let [l:completed_item, l:request_position] = s:prepare([
+        \   '<html>',
+        \   '  <div>',
+        \   '    </^!#>',
+        \   '</html>',
+        \ ])
+        call s:CompletionItem.confirm(l:completed_item, l:request_position, {
+        \   'label': '/div',
+        \   'textEdit': {'range': {'end': {'character': 6, 'line': 2}, 'start': {'character': 0, 'line': 2}}, 'newText': '  </div'},
+        \   'insertTextFormat': 1
+        \ }, { args -> s:snippet(args.body) })
+        call s:expect(getline('^', '$')).to_equal([
+        \   '<html>',
+        \   '  <div>',
+        \   '  </div>',
+        \   '</html>',
+        \ ])
+      End
+
+    End
+
+  End
+
+End
+
+function! s:prepare(lines) abort
+  call setline(1, a:lines)
+  for l:i in range(0, len(a:lines) - 1)
+    let l:lnum = l:i + 1
+    let l:line = a:lines[l:i]
+    if stridx(l:line, '^') >= 0 && stridx(l:line, '!') >= 0 && stridx(l:line, '#') >= 0
+      let l:parts = split(l:line, '\^\|!\|#')
+      let l:request_position = { 'line': l:lnum - 1, 'character': strchars(join(l:parts[0 : 1], '')) }
+      let l:current_position = { 'line': l:lnum - 1, 'character': strchars(join(l:parts[0 : 2], '')) }
+      let l:word = join(l:parts[1 : 2], '')
+      call setline(l:i + 1, join(l:parts, ''))
+      call cursor(s:Position.lsp_to_vim('%', l:current_position))
+      return [{ 'word': l:word }, l:request_position]
+    endif
+  endfor
+  throw 'the target line can''t detected'
+endfunction
+
+function! s:text_edit(start, end, text) abort
+  return {
+  \   'range': {
+  \     'start': s:Position.vim_to_lsp('%', a:start),
+  \     'end': s:Position.vim_to_lsp('%', a:end),
+  \   },
+  \   'newText': a:text
+  \ }
+endfunction
+
+function! s:snippet(text) abort
+  let l:cursor = s:Position.cursor()
+  let l:text = substitute(a:text, '\$\d\+', '', 'g')
+  call s:TextEdit.apply('%', [{
+  \   'range': {
+  \     'start': l:cursor,
+  \     'end': l:cursor,
+  \   },
+  \   'newText': l:text
+  \ }])
+  let l:lines = s:Text.split_by_eol(l:text)
+  let l:cursor = copy(l:cursor)
+  let l:cursor.line += len(l:lines) - 1
+  let l:cursor.character = len(l:lines) == 1 ? l:cursor.character + strchars(l:lines[-1]) : strchars(l:lines[-1])
+  call cursor(s:Position.lsp_to_vim('%', l:cursor))
+endfunction
