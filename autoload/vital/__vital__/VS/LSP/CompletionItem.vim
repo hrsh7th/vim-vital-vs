@@ -1,7 +1,17 @@
+"
+" _vital_loaded
+"
 function! s:_vital_loaded(V) abort
   let s:Position = a:V.import('VS.LSP.Position')
   let s:TextEdit = a:V.import('VS.LSP.TextEdit')
   let s:Text = a:V.import('VS.LSP.Text')
+endfunction
+
+"
+" _vital_depends
+"
+function! s:_vital_depends() abort
+  return ['VS.LSP.Position', 'VS.LSP.TextEdit', 'VS.LSP.Text']
 endfunction
 
 "
