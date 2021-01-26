@@ -4,14 +4,13 @@
 function! s:_vital_loaded(V) abort
   let s:Promise = a:V.import('Async.Promise')
   let s:Job = a:V.import('VS.System.Job')
-  let s:Emitter = a:V.import('VS.Event.Emitter')
 endfunction
 
 "
 " _vital_depends
 "
 function! s:_vital_depends() abort
-  return ['Async.Promise', 'VS.Event.Emitter', 'VS.System.Job']
+  return ['Async.Promise', 'VS.System.Job']
 endfunction
 
 "
@@ -31,12 +30,14 @@ let s:Connection = {}
 "
 function! s:Connection.new() abort
   return extend(deepcopy(s:Connection), {
-  \   'job': s:Job.new(),
-  \   'events': s:Emitter.new(),
-  \   'buffer':  '',
-  \   'header_length': -1,
-  \   'message_length': -1,
-  \   'request_map': {},
+  \   '_job': s:Job.new(),
+  \   '_buffer':  '',
+  \   '_header_length': -1,
+  \   '_message_length': -1,
+  \   '_request_id': 0,
+  \   '_request_map': {},
+  \   '_on_request_map': {},
+  \   '_on_notification_map': {},
   \ })
 endfunction
 
@@ -44,11 +45,9 @@ endfunction
 " start
 "
 function! s:Connection.start(args) abort
-  if !self.job.is_running()
-    call self.job.events.on('stdout', self.on_stdout)
-    call self.job.events.on('stderr', self.on_stderr)
-    call self.job.events.on('exit', self.on_exit)
-    call self.job.start(a:args)
+  if !self._job.is_running()
+    call self._job.on_stdout(function(self._on_stdout, [], self))
+    call self._job.start(a:args)
   endif
 endfunction
 
@@ -56,11 +55,8 @@ endfunction
 " stop
 "
 function! s:Connection.stop() abort
-  if self.job.is_running()
-    call self.job.events.off('stdout', self.on_stdout)
-    call self.job.events.off('stderr', self.on_stderr)
-    call self.job.events.off('exit', self.on_exit)
-    call self.job.stop()
+  if self._job.is_running()
+    call self._job.stop()
   endif
 endfunction
 
@@ -68,32 +64,34 @@ endfunction
 " is_running
 "
 function! s:Connection.is_running() abort
-  return self.job.is_running()
+  return self._job.is_running()
 endfunction
 
 "
 " request
 "
-function! s:Connection.request(id, method, params) abort
+function! s:Connection.request(method, params) abort
+  let self._request_id += 1
+
   let l:ctx = {}
   function! l:ctx.callback(id, method, params, resolve, reject) abort
-    let self.request_map[a:id] = { 'resolve': a:resolve, 'reject': a:reject }
+    let self._request_map[a:id] = { 'resolve': a:resolve, 'reject': a:reject }
     let l:message = { 'id': a:id, 'method': a:method }
     if a:params isnot# v:null
       let l:message.params = a:params
     endif
-    call self.job.send(self.to_message(l:message))
+    call self._send(l:message)
   endfunction
-  return s:Promise.new(function(l:ctx.callback, [a:id, a:method, a:params], self))
-endfunction
+  function! l:ctx.cancel(id) abort
+    if has_key(self._request_map, a:id)
+      call remove(self._request_map, a:id)
+    endif
+  endfunction
 
-"
-" response
-"
-function! s:Connection.response(id, ...) abort
-  let l:message = { 'id': a:id }
-  let l:message = extend(l:message, len(a:000) > 0 ? a:000[0] : {})
- call self.job.send(self.to_message(l:message))
+  let l:p = s:Promise.new(function(l:ctx.callback, [self._request_id, a:method, a:params], self))
+  let l:p.___id = self._request_id
+  let l:p.___cancel = function(l:ctx.cancel, [self._request_id], self)
+  return l:p
 endfunction
 
 "
@@ -104,40 +102,105 @@ function! s:Connection.notify(method, params) abort
   if a:params isnot# v:null
     let l:message.params = a:params
   endif
-  call self.job.send(self.to_message(l:message))
+  call self._send(l:message)
 endfunction
 
 "
-" cancel
+" on_request
 "
-function! s:Connection.cancel(id) abort
-  if has_key(self.request_map, a:id)
-    call remove(self.request_map, a:id)
-  endif
+function! s:Connection.on_request(method, callback) abort
+  let self._on_request_map[a:method] = a:callback
 endfunction
 
 "
-" to_message
+" on_notification
 "
-function! s:Connection.to_message(message) abort
+function! s:Connection.on_notification(method, callback) abort
+  let self._on_notification_map[a:method] = a:callback
+endfunction
+
+"
+" _send
+"
+function! s:Connection._send(message) abort
   let a:message.jsonrpc = '2.0'
   let l:message = json_encode(a:message)
-  return 'Content-Length: ' . strlen(l:message) . "\r\n\r\n" . l:message
+  call self._job.send('Content-Length: ' . strlen(l:message) . "\r\n\r\n" . l:message)
 endfunction
 
 "
-" on_message
+" _on_stdout
 "
-function! s:Connection.on_message(message) abort
+function! s:Connection._on_stdout(data) abort
+  let self._buffer .= join(a:data, "\n")
+
+  while self._buffer !=# ''
+    " header check.
+    if self._header_length == -1
+      let l:header_length = stridx(self._buffer, "\r\n\r\n") + 4
+      if l:header_length < 4
+        return
+      endif
+      let self._header_length = l:header_length
+      let self._message_length = self._header_length + str2nr(get(matchlist(self._buffer, '\ccontent-length:\s*\(\d\+\)'), 1, '-1'))
+    endif
+
+    " content check.
+    let l:buffer_len = strlen(self._buffer)
+    if l:buffer_len < self._message_length
+      return
+    endif
+
+    let l:content = strpart(self._buffer, self._header_length, self._message_length - self._header_length)
+    try
+      call self._on_message(json_decode(l:content))
+    catch /.*/
+      echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+    endtry
+    let self._buffer = strpart(self._buffer, self._message_length)
+    let self._header_length = -1
+  endwhile
+endfunction
+
+"
+" _on_message
+"
+function! s:Connection._on_message(message) abort
   if has_key(a:message, 'id')
     " Request from server.
     if has_key(a:message, 'method')
-      call self.events.emit('request', a:message)
+      if has_key(self._on_request_map, a:message.method)
+        let l:p = s:Promise.resolve()
+        let l:p = l:p.then({ -> self._on_request_map[a:message.method](a:message.params) })
+        let l:p = l:p.then({ result ->
+        \   self._write({
+        \     'result': result
+        \   })
+        \ })
+        let l:p = l:p.catch({ error ->
+        \   has_key(error, 'code') && has_key(error, 'message')
+        \     ? self._write(error)
+        \     : self._write({
+        \       'error': {
+        \         'code': -32603,
+        \         'message': 'Internal error',
+        \         'data': error,
+        \       }
+        \     })
+        \ })
+      else
+        call self._send({
+        \   'error': {
+        \     'code': -32601,
+        \     'message': 'Method not found',
+        \   }
+        \ })
+      endif
 
     " Response from server.
     else
-      if has_key(self.request_map, a:message.id)
-        let l:request = remove(self.request_map, a:message.id)
+      if has_key(self._request_map, a:message.id)
+        let l:request = remove(self._request_map, a:message.id)
         if has_key(a:message, 'error')
           call l:request.reject(a:message.error)
         else
@@ -148,61 +211,9 @@ function! s:Connection.on_message(message) abort
 
   " Notify from server.
   elseif has_key(a:message, 'method')
-    call self.events.emit('notify', a:message)
+    if has_key(self._on_notification_map, a:message.method)
+      call self._on_notification_map[a:message.method](a:message.params)
+    endif
   endif
-endfunction
-
-"
-" flush
-"
-function! s:Connection.flush(data) abort
-  let self.buffer .= a:data
-
-  while self.buffer !=# ''
-    " header check.
-    if self.header_length == -1
-      let l:header_length = stridx(self.buffer, "\r\n\r\n") + 4
-      if l:header_length < 4
-        return
-      endif
-      let self.header_length = l:header_length
-      let self.message_length = self.header_length + str2nr(get(matchlist(self.buffer, '\ccontent-length:\s*\(\d\+\)'), 1, '-1'))
-    endif
-
-    " content check.
-    let l:buffer_len = strlen(self.buffer)
-    if l:buffer_len < self.message_length
-      return
-    endif
-
-    let l:content = strpart(self.buffer, self.header_length, self.message_length - self.header_length)
-    try
-      call self.on_message(json_decode(l:content))
-    catch /.*/
-    endtry
-    let self.buffer = strpart(self.buffer, self.message_length)
-    let self.header_length = -1
-  endwhile
-endfunction
-
-"
-" on_stdout
-"
-function! s:Connection.on_stdout(data) abort
-  call self.flush(a:data)
-endfunction
-
-"
-" on_stderr
-"
-function! s:Connection.on_stderr(data) abort
-  call self.events.emit('stderr', a:data)
-endfunction
-
-"
-" on_exit
-"
-function! s:Connection.on_exit(code) abort
-  call self.events.emit('exit', a:code)
 endfunction
 
