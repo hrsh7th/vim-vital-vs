@@ -87,6 +87,7 @@ function! s:confirm(args) abort
     " Snippet.
     if l:expansion.is_snippet && !empty(l:ExpandSnippet)
       call s:TextEdit.apply('%', [{ 'range': l:range, 'newText': '' }])
+      call cursor(s:Position.lsp_to_vim('%', l:range.start))
       call l:ExpandSnippet({ 'body': l:expansion.new_text })
 
     " TextEdit.

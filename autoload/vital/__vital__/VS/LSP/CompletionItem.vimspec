@@ -255,6 +255,37 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         \ ])
       End
 
+      It gopls 1
+        let [l:suggest_position, l:request_position] = s:prepare([
+        \   'package main',
+        \   '',
+        \   'import "fmt"',
+        \   '',
+        \   'func main() {',
+        \   "\tfmt.Println(fmt.^Sprintf!#fmt.Sprintf())",
+        \   '}'
+        \ ])
+        call s:CompletionItem.confirm({
+        \   'suggest_position': l:suggest_position,
+        \   'request_position': l:request_position,
+        \   'expand_snippet': { args -> s:snippet(args.body) },
+        \   'completion_item': {
+        \     'label': 'Sprintf',
+        \     'textEdit': {'range': {'end': {'character': 27, 'line': 5}, 'start': {'character': 17, 'line': 5}}, 'newText': 'Sprintf(${1:})'},
+        \     'insertTextFormat': 2,
+        \   },
+        \ })
+        call s:expect(getline('^', '$')).to_equal([
+        \   'package main',
+        \   '',
+        \   'import "fmt"',
+        \   '',
+        \   'func main() {',
+        \   "\tfmt.Println(fmt.Sprintf().Sprintf())",
+        \   '}'
+        \ ])
+      End
+
     End
 
   End
@@ -291,7 +322,7 @@ endfunction
 
 function! s:snippet(text) abort
   let l:cursor = s:Position.cursor()
-  let l:text = substitute(a:text, '\$\d\+', '', 'g')
+  let l:text = substitute(a:text, '\$\d\+\|\${[^}]*}', '', 'g')
   call s:TextEdit.apply('%', [{
   \   'range': {
   \     'start': l:cursor,
