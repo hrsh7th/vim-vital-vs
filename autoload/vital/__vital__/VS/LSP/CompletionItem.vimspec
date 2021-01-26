@@ -12,6 +12,7 @@ Describe vital#__vital__#VS#LSP#CompletionItem
   End
 
   After each
+    call vsnip#deactivate()
     bdelete!
   End
 
@@ -199,9 +200,9 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         \   },
         \   'expand_snippet': { args -> s:snippet(args.body) }
         \ })
-        call s:expect(getline('^', '$')).to_equal([
+        call s:assert([
         \   'fn main() {',
-        \   '    Box::new("aiueo")',
+        \   '    Box::new("aiueo")%',
         \   '}'
         \ ])
       End
@@ -222,11 +223,11 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         \     'insertTextFormat': 1,
         \   },
         \ })
-        call s:expect(getline('^', '$')).to_equal([
+        call s:assert([
         \   'use std::path::PathBuf;',
         \   '',
         \   'fn main() {',
-        \   '    PathBuf',
+        \   '    PathBuf%',
         \   '}'
         \ ])
       End
@@ -247,10 +248,10 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         \     'insertTextFormat': 1
         \   },
         \ })
-        call s:expect(getline('^', '$')).to_equal([
+        call s:assert([
         \   '<html>',
         \   '  <div>',
-        \   '  </div>',
+        \   '  </div%>',
         \   '</html>',
         \ ])
       End
@@ -275,13 +276,13 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         \     'insertTextFormat': 2,
         \   },
         \ })
-        call s:expect(getline('^', '$')).to_equal([
+        call s:assert([
         \   'package main',
         \   '',
         \   'import "fmt"',
         \   '',
         \   'func main() {',
-        \   "\tfmt.Println(fmt.Sprintf().Sprintf())",
+        \   "\tfmt.Println(fmt.Sprintf(%).Sprintf())",
         \   '}'
         \ ])
       End
@@ -310,6 +311,18 @@ function! s:prepare(lines) abort
   throw 'the target line can''t detected'
 endfunction
 
+function! s:assert(lines) abort
+  for l:i in range(0, len(a:lines) - 1)
+    if stridx(a:lines[l:i], '%') >= 0
+      let l:parts = split(a:lines[l:i], '%')
+      let l:position = { 'line': l:i, 'character': strchars(l:parts[0]) }
+      let a:lines[l:i] = join(l:parts, '')
+    endif
+  endfor
+  call s:expect(a:lines).to_equal(getline('^', '$'))
+  call s:expect(l:position).to_equal(s:Position.cursor())
+endfunction
+
 function! s:text_edit(start, end, text) abort
   return {
   \   'range': {
@@ -321,18 +334,5 @@ function! s:text_edit(start, end, text) abort
 endfunction
 
 function! s:snippet(text) abort
-  let l:cursor = s:Position.cursor()
-  let l:text = substitute(a:text, '\$\d\+\|\${[^}]*}', '', 'g')
-  call s:TextEdit.apply('%', [{
-  \   'range': {
-  \     'start': l:cursor,
-  \     'end': l:cursor,
-  \   },
-  \   'newText': l:text
-  \ }])
-  let l:lines = s:Text.split_by_eol(l:text)
-  let l:cursor = copy(l:cursor)
-  let l:cursor.line += len(l:lines) - 1
-  let l:cursor.character = strchars(l:lines[-1]) + (len(l:lines) == 1 ? l:cursor.character : 0)
-  call cursor(s:Position.lsp_to_vim('%', l:cursor))
+  call vsnip#anonymous(a:text)
 endfunction

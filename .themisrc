@@ -7,8 +7,13 @@ if !isdirectory(s:misc . '/vital.vim')
   call system(printf('git clone --depth 1 https://github.com/vim-jp/vital.vim %s/vital.vim', s:misc))
 endif
 
+if !isdirectory(s:misc . '/vim-vsnip')
+  call system(printf('git clone --depth 1 https://github.com/hrsh7th/vim-vsnip %s/vim-vsnip', s:misc))
+endif
+
 call themis#option('exclude', ['\.vim$', './misc'])
 call themis#option('recursive', 1)
 call themis#option('runtimepath', [
 \   s:misc . '/vital.vim',
+\   s:misc . '/vim-vsnip',
 \ ])
