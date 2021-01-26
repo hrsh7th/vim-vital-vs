@@ -1,5 +1,4 @@
 "
-"uj
 " _vital_loaded
 "
 function! s:_vital_loaded(V) abort
@@ -20,11 +19,16 @@ endfunction
 "
 " @param {LSP.Position}                       args.suggest_position
 " @param {LSP.Position}                       args.request_position
+" @param {LSP.Position}                       args.current_position
+" @param {string}                             args.current_line
 " @param {LSP.CompletionItem}                 args.completion_item
 " @param {(args: { body: string; }) => void?} args.expand_snippet
 "
-" # Pre condition
-" This method will work only accepting item via `<C-y>` and the cursor position must be the end of completed word.
+" # Pre-condition
+"
+"   - You must pass `current_position` that represents the position when `CompleteDone` was fired.
+"   - You must pass `current_line` that represents the line when `CompleteDone` was fired.
+"   - You must call this function after the commit characters has been inserted.
 "
 " # The positoins
 "
@@ -32,35 +36,43 @@ endfunction
 "
 "     call getbufl|<C-x><C-o><C-n><C-y>   ->   call getbufline|
 "
-"   1. current_position
+"   1. suggest_position
 "
-"     call getbufline|
+"     call |getbufline
 "
 "   2. request_position
 "
 "     call getbufl|ine
 "
-"   3. suggest_position
+"   3. current_position
 "
-"     call |getbufline
+"     call getbufline|
 "
 "
 function! s:confirm(args) abort
   let l:suggest_position = a:args.suggest_position
   let l:request_position = a:args.request_position
-  let l:current_position = s:Position.cursor()
+  let l:current_position = a:args.current_position
+  let l:current_line = a:args.current_line
   let l:completion_item = a:args.completion_item
   let l:ExpandSnippet = get(a:args, 'expand_snippet', v:null)
 
-  " 1. Restore state of the timing when `textDocument/completion` was sent if expansion is needed
-  let l:expansion = s:get_expansion({
-  \   'current_line': getline('.'),
+  " 1. Prepare for alignment to VSCode behavior.
+  let l:expansion = s:_get_expansion({
   \   'suggest_position': l:suggest_position,
   \   'request_position': l:request_position,
   \   'current_position': l:current_position,
+  \   'current_line': l:current_line,
   \   'completion_item': l:completion_item,
   \ })
   if !empty(l:expansion)
+    " Remove commit characters if expansion is needed.
+    if getline('.') !=# l:current_line
+      call setline(l:current_position.line + 1, l:current_line)
+      call cursor(s:Position.lsp_to_vim('%', l:current_position))
+    endif
+
+    " Restore state of the timing when `textDocument/completion` was sent.
     call s:TextEdit.apply('%', [{
     \   'range': { 'start': l:request_position, 'end': l:current_position },
     \   'newText': ''
@@ -105,9 +117,9 @@ function! s:confirm(args) abort
 endfunction
 
 "
-" get_expansion
+" _get_expansion
 "
-function! s:get_expansion(args) abort
+function! s:_get_expansion(args) abort
   let l:current_line = a:args.current_line
   let l:suggest_position = a:args.suggest_position
   let l:request_position = a:args.request_position

@@ -22,12 +22,14 @@ Describe vital#__vital__#VS#LSP#CompletionItem
 
       Describe snippet
         It should not expand
-          let [l:suggest_position, l:request_position] = s:prepare(['call ^getbufl!ine#'])
+          let [l:suggest_position, l:request_position, l:current_position, l:current_line] = s:prepare(['call ^getbufl!ine#'])
           let l:changedtick = b:changedtick
           let l:buflines = getline('^', '$')
           call s:CompletionItem.confirm({
           \   'suggest_position': l:suggest_position,
           \   'request_position': l:request_position,
+          \   'current_position': l:current_position,
+          \   'current_line': l:current_line,
           \   'completion_item': {
           \     'insertTextFormat': 2,
           \     'textEdit': s:text_edit([1, 6], [1, 13], 'getbufline$0')
@@ -39,10 +41,12 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         End
 
         It should expand as insert
-          let [l:suggest_position, l:request_position] = s:prepare(['call ^getbuf!line#'])
+          let [l:suggest_position, l:request_position, l:current_position, l:current_line] = s:prepare(['call ^getbuf!line#'])
           call s:CompletionItem.confirm({
           \   'suggest_position': l:suggest_position,
           \   'request_position': l:request_position,
+          \   'current_position': l:current_position,
+          \   'current_line': l:current_line,
           \   'completion_item': {
           \     'insertTextFormat': 2,
           \     'textEdit': s:text_edit([1, 12], [1, 12], 'info$0')
@@ -53,10 +57,12 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         End
 
         It should expand as replace
-          let [l:suggest_position, l:request_position] = s:prepare(['call ^getbuf!#line'])
+          let [l:suggest_position, l:request_position, l:current_position, l:current_line] = s:prepare(['call ^getbuf!#line'])
           call s:CompletionItem.confirm({
           \   'suggest_position': l:suggest_position,
           \   'request_position': l:request_position,
+          \   'current_position': l:current_position,
+          \   'current_line': l:current_line,
           \   'completion_item': {
           \     'insertTextFormat': 2,
           \     'textEdit': s:text_edit([1, 6], [1, 16], 'getbufinfo$0')
@@ -69,12 +75,14 @@ Describe vital#__vital__#VS#LSP#CompletionItem
 
       Describe plain
         It should not expand
-          let [l:suggest_position, l:request_position] = s:prepare(['call ^getbufl!ine#'])
+          let [l:suggest_position, l:request_position, l:current_position, l:current_line] = s:prepare(['call ^getbufl!ine#'])
           let l:changedtick = b:changedtick
           let l:buflines = getline('^', '$')
           call s:CompletionItem.confirm({
           \   'suggest_position': l:suggest_position,
           \   'request_position': l:request_position,
+          \   'current_position': l:current_position,
+          \   'current_line': l:current_line,
           \   'completion_item': {
           \     'textEdit': s:text_edit([1, 6], [1, 13], 'getbufline')
           \   },
@@ -84,10 +92,12 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         End
 
         It should expand as insert
-          let [l:suggest_position, l:request_position] = s:prepare(['call ^getbuf!line#'])
+          let [l:suggest_position, l:request_position, l:current_position, l:current_line] = s:prepare(['call ^getbuf!line#'])
           call s:CompletionItem.confirm({
           \   'suggest_position': l:suggest_position,
           \   'request_position': l:request_position,
+          \   'current_position': l:current_position,
+          \   'current_line': l:current_line,
           \   'completion_item': {
           \     'textEdit': s:text_edit([1, 12], [1, 12], 'info')
           \   },
@@ -96,10 +106,12 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         End
 
         It should expand as replace
-          let [l:suggest_position, l:request_position] = s:prepare(['call ^getbuf!#line'])
+          let [l:suggest_position, l:request_position, l:current_position, l:current_line] = s:prepare(['call ^getbuf!#line'])
           call s:CompletionItem.confirm({
           \   'suggest_position': l:suggest_position,
           \   'request_position': l:request_position,
+          \   'current_position': l:current_position,
+          \   'current_line': l:current_line,
           \   'completion_item': {
           \     'textEdit': s:text_edit([1, 6], [1, 16], 'getbufinfo')
           \   },
@@ -114,12 +126,14 @@ Describe vital#__vital__#VS#LSP#CompletionItem
 
       Describe snippet
         It should not expand
-          let [l:suggest_position, l:request_position] = s:prepare(['call ^getbufl!ine#'])
+          let [l:suggest_position, l:request_position, l:current_position, l:current_line] = s:prepare(['call ^getbufl!ine#'])
           let l:changedtick = b:changedtick
           let l:buflines = getline('^', '$')
           call s:CompletionItem.confirm({
           \   'suggest_position': l:suggest_position,
           \   'request_position': l:request_position,
+          \   'current_position': l:current_position,
+          \   'current_line': l:current_line,
           \   'completion_item': {
           \     'label': '',
           \     'insertTextFormat': 2,
@@ -132,10 +146,12 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         End
 
         It should expand
-          let [l:suggest_position, l:request_position] = s:prepare(['call ^getbuf!line#'])
+          let [l:suggest_position, l:request_position, l:current_position, l:current_line] = s:prepare(['call ^getbuf!line#'])
           call s:CompletionItem.confirm({
           \   'suggest_position': l:suggest_position,
           \   'request_position': l:request_position,
+          \   'current_position': l:current_position,
+          \   'current_line': l:current_line,
           \   'completion_item': {
           \     'label': '',
           \     'insertTextFormat': 2,
@@ -149,12 +165,14 @@ Describe vital#__vital__#VS#LSP#CompletionItem
 
       Describe plain
         It should not expand
-          let [l:suggest_position, l:request_position] = s:prepare(['call ^getbufl!ine#'])
+          let [l:suggest_position, l:request_position, l:current_position, l:current_line] = s:prepare(['call ^getbufl!ine#'])
           let l:changedtick = b:changedtick
           let l:buflines = getline('^', '$')
           call s:CompletionItem.confirm({
           \   'suggest_position': l:suggest_position,
           \   'request_position': l:request_position,
+          \   'current_position': l:current_position,
+          \   'current_line': l:current_line,
           \   'completion_item': {
           \     'label': '',
           \     'insertText': 'getbufline'
@@ -165,10 +183,12 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         End
 
         It should expand
-          let [l:suggest_position, l:request_position] = s:prepare(['call ^getbuf!line#'])
+          let [l:suggest_position, l:request_position, l:current_position, l:current_line] = s:prepare(['call ^getbuf!line#'])
           call s:CompletionItem.confirm({
           \   'suggest_position': l:suggest_position,
           \   'request_position': l:request_position,
+          \   'current_position': l:current_position,
+          \   'current_line': l:current_line,
           \   'completion_item': {
           \     'label': '',
           \     'insertText': 'getbufinfo'
@@ -183,7 +203,7 @@ Describe vital#__vital__#VS#LSP#CompletionItem
     Describe realworld
 
       It rust-analyzer 1
-        let [l:suggest_position, l:request_position] = s:prepare([
+        let [l:suggest_position, l:request_position, l:current_position, l:current_line] = s:prepare([
         \   'fn main() {',
         \   '    "aiueo"',
         \   '        .^box!#',
@@ -192,6 +212,8 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         call s:CompletionItem.confirm({
         \   'suggest_position': l:suggest_position,
         \   'request_position': l:request_position,
+        \   'current_position': l:current_position,
+        \   'current_line': l:current_line,
         \   'completion_item': {
         \     'label': 'box',
         \     'insertTextFormat': 2,
@@ -208,7 +230,7 @@ Describe vital#__vital__#VS#LSP#CompletionItem
       End
 
       It rust-analyzer 2
-        let [l:suggest_position, l:request_position] = s:prepare([
+        let [l:suggest_position, l:request_position, l:current_position, l:current_line] = s:prepare([
         \   'fn main() {',
         \   '    ^PathBuf!#',
         \   '}',
@@ -216,6 +238,8 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         call s:CompletionItem.confirm({
         \   'suggest_position': l:suggest_position,
         \   'request_position': l:request_position,
+        \   'current_position': l:current_position,
+        \   'current_line': l:current_line,
         \   'completion_item': {
         \     'label': 'std::path::PathBuf',
         \     'textEdit': {'range': {'end': {'character': 11, 'line': 1}, 'start': {'character': 4, 'line': 1}}, 'newText': 'PathBuf'},
@@ -233,7 +257,7 @@ Describe vital#__vital__#VS#LSP#CompletionItem
       End
 
       It vscode-html-language-server 1
-        let [l:suggest_position, l:request_position] = s:prepare([
+        let [l:suggest_position, l:request_position, l:current_position, l:current_line] = s:prepare([
         \   '<html>',
         \   '  <div>',
         \   '    </^!#>',
@@ -242,6 +266,8 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         call s:CompletionItem.confirm({
         \   'suggest_position': l:suggest_position,
         \   'request_position': l:request_position,
+        \   'current_position': l:current_position,
+        \   'current_line': l:current_line,
         \   'completion_item': {
         \     'label': '/div',
         \     'textEdit': {'range': {'end': {'character': 6, 'line': 2}, 'start': {'character': 0, 'line': 2}}, 'newText': '  </div'},
@@ -257,7 +283,7 @@ Describe vital#__vital__#VS#LSP#CompletionItem
       End
 
       It gopls 1
-        let [l:suggest_position, l:request_position] = s:prepare([
+        let [l:suggest_position, l:request_position, l:current_position, l:current_line] = s:prepare([
         \   'package main',
         \   '',
         \   'import "fmt"',
@@ -269,6 +295,8 @@ Describe vital#__vital__#VS#LSP#CompletionItem
         call s:CompletionItem.confirm({
         \   'suggest_position': l:suggest_position,
         \   'request_position': l:request_position,
+        \   'current_position': l:current_position,
+        \   'current_line': l:current_line,
         \   'expand_snippet': { args -> s:snippet(args.body) },
         \   'completion_item': {
         \     'label': 'Sprintf',
@@ -303,9 +331,11 @@ function! s:prepare(lines) abort
       let l:suggest_position = { 'line': l:lnum - 1, 'character': strchars(join(l:parts[0 : 0], '')) }
       let l:request_position = { 'line': l:lnum - 1, 'character': strchars(join(l:parts[0 : 1], '')) }
       let l:current_position = { 'line': l:lnum - 1, 'character': strchars(join(l:parts[0 : 2], '')) }
-      call setline(l:i + 1, join(l:parts, ''))
+      let l:current_line = join(l:parts, '')
+
+      call setline(l:i + 1, l:current_line)
       call cursor(s:Position.lsp_to_vim('%', l:current_position))
-      return [l:suggest_position, l:request_position]
+      return [l:suggest_position, l:request_position, l:current_position, l:current_line]
     endif
   endfor
   throw 'the target line can''t detected'
