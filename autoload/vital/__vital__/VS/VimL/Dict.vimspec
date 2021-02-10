@@ -1,0 +1,76 @@
+let s:expect = themis#helper('expect')
+let s:Dict = vital#vital#import('VS.VimL.Dict')
+
+Describe vital#__vital__#VS#VimL#Dict
+
+  let s:dict = {
+  \   'get': {
+  \     'a': {
+  \       'b': {
+  \         'c': { -> 'return' }
+  \       }
+  \     }
+  \   },
+  \   'set': {
+  \     'a': {
+  \       'b': {
+  \         'c': v:true,
+  \       }
+  \     }
+  \   }
+  \ }
+
+  Describe #get
+
+    It should get value
+      call s:expect(s:Dict.get(s:dict, ['get', 'a', 'b', 'c'])()).to_equal('return')
+    End
+
+    It should get default value
+      call s:expect(s:Dict.get(s:dict, ['get', '_', 'b', 'c'], v:false)).to_equal(v:false)
+      call s:expect(s:Dict.get(s:dict, ['get', 'a', '_', 'c'], v:false)).to_equal(v:false)
+      call s:expect(s:Dict.get(s:dict, ['get', 'a', 'b', '_'], v:false)).to_equal(v:false)
+    End
+
+  End
+
+  Describe #set
+
+    It should set value
+      call s:Dict.set(s:dict, ['_'], 1)
+      call s:expect(s:Dict.get(s:dict, ['_'])).to_equal(1)
+      call s:Dict.set(s:dict, ['set', 'a', 'b', 'd'], 1)
+      call s:expect(s:Dict.get(s:dict, ['set', 'a', 'b', 'd'])).to_equal(1)
+    End
+
+    It should throw exception
+      try
+        call s:Dict.set(s:dict, ['set', 'a', 'b', 'c'], 1)
+      catch /.*/
+        call s:expect(v:exception).to_equal('VS.VimL.Dict: `set.a.b.c` is not dict.')
+      endtry
+    End
+
+  End
+
+  Describe #remove
+
+    It should remove value
+      call s:Dict.set(s:dict, ['_'], 1)
+      call s:expect(s:Dict.get(s:dict, ['_'])).to_equal(1)
+      call s:Dict.remove(s:dict, ['_'])
+      call s:expect(s:Dict.get(s:dict, ['_'])).to_equal(v:null)
+    End
+
+    It should throw exception
+      try
+        call s:Dict.remove(s:dict, ['set', 'a', 'b', 'c'])
+      catch /.*/
+        call s:expect(v:exception).to_equal('VS.VimL.Dict: `set.a.b.c` is not dict.')
+      endtry
+    End
+
+  End
+
+End
+
