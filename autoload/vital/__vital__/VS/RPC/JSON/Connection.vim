@@ -16,8 +16,8 @@ endfunction
 "
 " new
 "
-function! s:new() abort
-  return s:Connection.new()
+function! s:new(...) abort
+  return s:Connection.new(get(a:000, 0, {}))
 endfunction
 
 "
@@ -28,7 +28,7 @@ let s:Connection = {}
 "
 " new
 "
-function! s:Connection.new() abort
+function! s:Connection.new(args) abort
   return extend(deepcopy(s:Connection), {
   \   '_job': s:Job.new(),
   \   '_buffer':  '',
@@ -89,8 +89,9 @@ function! s:Connection.request(method, params) abort
   endfunction
 
   let l:p = s:Promise.new(function(l:ctx.callback, [self._request_id, a:method, a:params], self))
-  let l:p.___id = self._request_id
-  let l:p.___cancel = function(l:ctx.cancel, [self._request_id], self)
+  let l:p._request = {}
+  let l:p._request.id = self._request_id
+  let l:p._request.cancle = function(l:ctx.cancel, [self._request_id], self)
   return l:p
 endfunction
 
@@ -173,20 +174,28 @@ function! s:Connection._on_message(message) abort
         let l:p = s:Promise.resolve()
         let l:p = l:p.then({ -> self._on_request_map[a:message.method](a:message.params) })
         let l:p = l:p.then({ result ->
-        \   self._write({
+        \   self._send({
+        \     'id': a:message.id,
         \     'result': result
         \   })
         \ })
         let l:p = l:p.catch({ error ->
         \   has_key(error, 'code') && has_key(error, 'message')
-        \     ? self._write(error)
-        \     : self._write({
-        \       'error': {
-        \         'code': -32603,
-        \         'message': 'Internal error',
-        \         'data': error,
-        \       }
-        \     })
+        \     ? (
+        \       self._send({
+        \         'id': a:message.id,
+        \         'error': error
+        \       })
+        \     ) : (
+        \       self._send({
+        \         'id': a:message.id,
+        \         'error': {
+        \           'code': -32603,
+        \           'message': 'Internal error',
+        \           'data': error,
+        \         }
+        \       })
+        \     )
         \ })
       else
         call self._send({
