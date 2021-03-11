@@ -1,6 +1,19 @@
 function! s:apply(...) abort
   if !exists('b:___VS_Vim_Syntax_Markdown')
-    runtime! syntax/markdown.vim
+    call s:_execute('runtime! syntax/markdown.vim')
+
+    " We manually apply fenced code block
+    syntax clear markdownCode
+
+    " Add syntax for basic html entities.
+    syntax match vital_vs_vim_syntax_markdown_entities_lt /&lt;/ containedin=TOP conceal cchar=<
+    syntax match vital_vs_vim_syntax_markdown_entities_gt /&gt;/ containedin=TOP conceal cchar=>
+    syntax match vital_vs_vim_syntax_markdown_entities_amp /&amp;/ containedin=TOP conceal cchar=&
+    syntax match vital_vs_vim_syntax_markdown_entities_quot /&quot;/ containedin=TOP conceal cchar="
+    syntax match vital_vs_vim_syntax_markdown_entities_nbsp /&nbsp;/ containedin=TOP conceal cchar=\ 
+
+    " Ignore possible escape chars.
+    syntax match vital_vs_vim_syntax_markdown_escape /[^\\]\zs\\\ze[^\\]/ conceal
     let b:___VS_Vim_Syntax_Markdown = {}
   endif
 
@@ -14,14 +27,11 @@ function! s:apply(...) abort
       let b:___VS_Vim_Syntax_Markdown[l:group] = v:true
 
       try
-        if exists('b:current_syntax')
-          unlet b:current_syntax
-        endif
-        execute printf('syntax include @%s syntax/%s.vim', l:group, l:filetype)
-        execute printf('syntax region %s matchgroup=Conceal start=/%s/rs=e matchgroup=Conceal end=/%s/re=s contains=@%s containedin=ALL keepend concealends',
+        call s:_execute('syntax include @%s syntax/%s.vim', l:group, l:filetype)
+        call s:_execute('syntax region %s matchgroup=Conceal start=/%s/rs=e matchgroup=Conceal end=/%s/re=s contains=@%s containedin=TOP keepend concealends',
         \   l:group,
-        \   printf('^\s*```\s*%s\s*', l:mark),
-        \   '\s*```\s*$',
+        \   printf('```%s\s*', l:mark),
+        \   '```\s*\%(\s\|' . "\n" . '\|$\)',
         \   l:group
         \ )
       catch /.*/
@@ -31,6 +41,19 @@ function! s:apply(...) abort
   catch /.*/
     echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
   endtry
+endfunction
+
+"
+"  _execute
+"
+function! s:_execute(command, ...) abort
+  let b:current_syntax = ''
+  unlet b:current_syntax
+
+  let g:main_syntax = ''
+  unlet g:main_syntax
+
+  execute call('printf', [a:command] + a:000)
 endfunction
 
 "

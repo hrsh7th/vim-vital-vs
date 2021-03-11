@@ -18,6 +18,7 @@ Describe vital#__vital__#VS#Vim#Syntax#Markdown
       \   'Header',
       \   '===',
       \   '',
+      \   '```vim call getbufline("%", "^", "$") ```',
       \   '```vim',
       \   'call getbufline("%", "^", "$")',
       \   '```',
@@ -25,7 +26,8 @@ Describe vital#__vital__#VS#Vim#Syntax#Markdown
       call s:Markdown.apply()
 
       call s:expect(s:syntax(1, 1)).to_equal('markdownH1')
-      call s:expect(s:syntax(5, 17)).to_equal('vimString')
+      call s:expect(s:syntax(4, 25)).to_equal('vimString')
+      call s:expect(s:syntax(6, 17)).to_equal('vimString')
     End
 
     It should apply fenced code block with g:markdown_fenced_languages
