@@ -1,3 +1,4 @@
 misc/*
+!misc/sandbox.vim
 node_modules
 
