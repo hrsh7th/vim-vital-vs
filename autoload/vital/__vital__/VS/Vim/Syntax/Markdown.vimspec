@@ -1,6 +1,8 @@
 let s:expect = themis#helper('expect')
 let s:Markdown = vital#vital#import('VS.Vim.Syntax.Markdown')
 
+let s:conceallevel = &conceallevel
+
 Describe vital#__vital__#VS#Vim#Syntax#Markdown
 
   Before each
@@ -8,26 +10,53 @@ Describe vital#__vital__#VS#Vim#Syntax#Markdown
   End
 
   After each
+    let &conceallevel = s:conceallevel
     bdelete!
   End
 
   Describe #apply
 
-    It should apply fenced code block
+    It should apply custom markdown highlights
       call setline(1, [
       \   'Header',
       \   '===',
       \   '',
+      \   '# Inline fenced code block',
       \   '```vim call getbufline("%", "^", "$") ```',
+      \   '',
+      \   '# Multiline fenced code block',
       \   '```vim',
       \   'call getbufline("%", "^", "$")',
       \   '```',
+      \   '',
+      \   '# Inline code block',
+      \   '`Inline code`',
+      \   '',
+      \   '# Escape',
+      \   '\` \- \\',
+      \   '',
+      \   '# Entities',
+      \   '&lt; &gt; &amp; &quot; &nbsp;',
+      \   '',
       \ ])
       call s:Markdown.apply()
 
       call s:expect(s:syntax(1, 1)).to_equal('markdownH1')
-      call s:expect(s:syntax(4, 25)).to_equal('vimString')
-      call s:expect(s:syntax(6, 17)).to_equal('vimString')
+      call s:expect(s:syntax(5, 25)).to_equal('vimString')
+      call s:expect(s:syntax(9, 17)).to_equal('vimString')
+      call s:expect(s:syntax(13, 2)).to_equal('markdownCode')
+      set conceallevel=2
+
+
+      call s:expect(synconcealed(16, 1)[1]).to_equal('`')
+      call s:expect(synconcealed(16, 4)[1]).to_equal('-')
+      call s:expect(synconcealed(16, 7)[1]).to_equal('\')
+
+      call s:expect(synconcealed(19, 1)[1]).to_equal('<')
+      call s:expect(synconcealed(19, 6)[1]).to_equal('>')
+      call s:expect(synconcealed(19, 11)[1]).to_equal('&')
+      call s:expect(synconcealed(19, 17)[1]).to_equal('"')
+      call s:expect(synconcealed(19, 24)[1]).to_equal(' ')
     End
 
     It should apply fenced code block with g:markdown_fenced_languages
