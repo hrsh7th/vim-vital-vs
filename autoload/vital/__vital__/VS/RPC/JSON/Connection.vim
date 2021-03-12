@@ -91,7 +91,7 @@ function! s:Connection.request(method, params) abort
   let l:p = s:Promise.new(function(l:ctx.callback, [self._request_id, a:method, a:params], self))
   let l:p._request = {}
   let l:p._request.id = self._request_id
-  let l:p._request.cancle = function(l:ctx.cancel, [self._request_id], self)
+  let l:p._request.cancel = function(l:ctx.cancel, [self._request_id], self)
   return l:p
 endfunction
 
