@@ -17,7 +17,7 @@ function! s:apply(...) abort
       \   l:char,
       \ )
     endfor
-    syntax match vital_vs_vim_syntax_markdown_escape_escape /[^\\]\\\\/ conceal cchar=\ containedin=ALL
+    syntax match vital_vs_vim_syntax_markdown_escape_escape /[^\\]\?\zs\\\\/ conceal cchar=\ containedin=ALL
 
     " Add syntax for basic html entities.
     syntax match vital_vs_vim_syntax_markdown_entities_lt /&lt;/ containedin=ALL conceal cchar=<
