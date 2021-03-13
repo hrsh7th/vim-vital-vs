@@ -42,7 +42,7 @@ function! s:apply(...) abort
         call s:_execute('syntax include @%s syntax/%s.vim', l:group, l:filetype)
         call s:_execute('syntax region %s matchgroup=Conceal start=/%s/rs=e matchgroup=Conceal end=/%s/re=s contains=@%s containedin=TOP keepend concealends',
         \   l:group,
-        \   printf('```%s\s*', l:mark),
+        \   printf('```\s*%s\s*', l:mark),
         \   '```\s*\%(\s\|' . "\n" . '\|$\)',
         \   l:group
         \ )
