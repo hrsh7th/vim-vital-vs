@@ -1,13 +1,21 @@
+"
+" apply
+"
+" NOTE: Currently, this module supports only tpope/vim-markdown or vim/neovim's syntax.
+"
 function! s:apply(...) abort
   if !exists('b:___VS_Vim_Syntax_Markdown')
     call s:_execute('runtime! syntax/markdown.vim')
 
-    " Modify markdownCode
-    syntax clear markdownCode
+    " Remove markdownCodeBlock because we support it manually.
+    silent! syntax clear markdownCodeBlock
+
+    " Modify markdownCode (`codes...`)
+    silent! syntax clear markdownCode
     syntax region markdownCode matchgroup=Conceal start=/\%(``\)\@!`/ matchgroup=Conceal end=/\%(``\)\@!`/ containedin=TOP keepend concealends
 
-    " Modify markdownEscape
-    syntax clear markdownEscape
+    " Modify markdownEscape (_bold\_text_)
+    silent! syntax clear markdownEscape
     let l:name = 0
     for l:char in split('!"#$%&()*+,-.g:;<=>?@[]^_`{|}~' . "'", '\zs')
       let l:name += 1
