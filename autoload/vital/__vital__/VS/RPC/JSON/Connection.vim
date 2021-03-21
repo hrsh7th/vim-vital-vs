@@ -136,26 +136,16 @@ endfunction
 function! s:Connection._on_stdout(data) abort
   let l:data = join(a:data, "\n")
 
-  " Handle headers.
   if self._content_length == -1
-    let l:header_offset = stridx(l:data, "\r\n\r\n") + 4
-    if l:header_offset < 4
-      call add(self._headers, l:data)
+    if !self._on_header(l:data)
       return
-    else
-      call add(self._headers, strpart(l:data, 0, l:header_offset))
-      call add(self._contents, strpart(l:data, l:header_offset))
-      let self._current_content_length += strlen(self._contents[-1])
     endif
-    let self._content_length = str2nr(get(matchlist(join(self._headers, ''), '\ccontent-length:\s*\(\d\+\)'), 1, '-1'))
   else
     call add(self._contents, l:data)
     let self._current_content_length += strlen(l:data)
-  endif
-
-  " Handle contents
-  if self._current_content_length < self._content_length
-    return
+    if self._current_content_length < self._content_length
+      return
+    endif
   endif
 
   let l:buffer = join(self._contents, '')
@@ -173,6 +163,23 @@ function! s:Connection._on_stdout(data) abort
   if l:remain !=# ''
     call self._on_stdout([l:remain])
   endif
+endfunction
+
+"
+" _on_header
+"
+function! s:Connection._on_header(data) abort
+  let l:header_offset = stridx(a:data, "\r\n\r\n") + 4
+  if l:header_offset < 4
+    call add(self._headers, a:data)
+    return v:false
+  else
+    call add(self._headers, strpart(a:data, 0, l:header_offset))
+    call add(self._contents, strpart(a:data, l:header_offset))
+    let self._current_content_length += strlen(self._contents[-1])
+  endif
+  let self._content_length = str2nr(get(matchlist(join(self._headers, ''), '\ccontent-length:\s*\(\d\+\)'), 1, '-1'))
+  return self._current_content_length >= self._content_length
 endfunction
 
 "

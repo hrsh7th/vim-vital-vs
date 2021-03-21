@@ -11,17 +11,48 @@ Describe vital#__vital__#VS#RPC#JSON#Connection
       call s:recv(l:c, {
       \   'method': 'test',
       \   'params': {
-      \     'test': 1
+      \     'test0': 1,
+      \     'test1': 1,
+      \     'test2': 1,
+      \     'test3': 1,
+      \     'test4': 1,
+      \     'test5': 1,
+      \     'test6': 1,
+      \     'test7': 1,
+      \     'test8': 1,
+      \     'test9': 1,
       \   }
       \ })
-      call s:expect(s:message).to_equal({ 'test': 1 })
-      call s:recv(l:c, {
-      \   'method': 'test',
-      \   'params': {
-      \     'test': 2
-      \   }
+      call s:expect(s:message).to_equal({
+      \   'test0': 1,
+      \   'test1': 1,
+      \   'test2': 1,
+      \   'test3': 1,
+      \   'test4': 1,
+      \   'test5': 1,
+      \   'test6': 1,
+      \   'test7': 1,
+      \   'test8': 1,
+      \   'test9': 1,
       \ })
-      call s:expect(s:message).to_equal({ 'test': 2 })
+    End
+
+    It should performant
+      let l:reltime = reltime()
+      for l:i in range(0, 100)
+        let l:payload = {
+        \   'data': 'abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890'
+        \ }
+
+        let l:c = s:Connection.new({})
+        call l:c.on_notification('test', { params -> execute('let s:message = params') })
+        call s:recv(l:c, {
+        \   'method': 'test',
+        \   'params': l:payload
+        \ })
+        call s:expect(s:message).to_equal(l:payload)
+      endfor
+      call themis#log(reltimefloat(reltime(l:reltime)))
     End
 
   End
@@ -30,6 +61,9 @@ End
 
 function! s:recv(c, message) abort
   let l:message = json_encode(a:message)
-  call a:c._on_stdout(['Content-Length: ' . strlen(l:message) . "\r\n\r\n" . l:message])
+  call a:c._on_stdout(['Content-Length: ' . strlen(l:message) . "\r\n\r\n"])
+  for l:chunk in split(l:message, '........\zs')
+    call a:c._on_stdout([l:chunk])
+  endfor
 endfunction
 
