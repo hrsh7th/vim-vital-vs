@@ -14,6 +14,6 @@ endif
 call themis#option('exclude', ['\.vim$', './misc'])
 call themis#option('recursive', 1)
 call themis#option('runtimepath', [
-\   s:misc . '/vital.vim',
-\   s:misc . '/vim-vsnip',
+\   resolve(s:misc . '/vital.vim'),
+\   resolve(s:misc . '/vim-vsnip'),
 \ ])
