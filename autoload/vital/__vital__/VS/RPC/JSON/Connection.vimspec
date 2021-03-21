@@ -3,56 +3,18 @@ let s:Connection = vital#vital#import('VS.RPC.JSON.Connection')
 
 Describe vital#__vital__#VS#RPC#JSON#Connection
 
-  Describe #on_stdout
+  Describe #_on_stdout
 
     It should receive message
       let l:c = s:Connection.new({})
       call l:c.on_notification('test', { params -> execute('let s:message = params') })
+
+      let l:params = { 'test': 1 }
       call s:recv(l:c, {
       \   'method': 'test',
-      \   'params': {
-      \     'test0': 1,
-      \     'test1': 1,
-      \     'test2': 1,
-      \     'test3': 1,
-      \     'test4': 1,
-      \     'test5': 1,
-      \     'test6': 1,
-      \     'test7': 1,
-      \     'test8': 1,
-      \     'test9': 1,
-      \   }
+      \   'params': l:params
       \ })
-      call s:expect(s:message).to_equal({
-      \   'test0': 1,
-      \   'test1': 1,
-      \   'test2': 1,
-      \   'test3': 1,
-      \   'test4': 1,
-      \   'test5': 1,
-      \   'test6': 1,
-      \   'test7': 1,
-      \   'test8': 1,
-      \   'test9': 1,
-      \ })
-    End
-
-    It should performant
-      let l:reltime = reltime()
-      for l:i in range(0, 100)
-        let l:payload = {
-        \   'data': 'abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890abcdefghijklmnopqrstuvwxyz12345667890'
-        \ }
-
-        let l:c = s:Connection.new({})
-        call l:c.on_notification('test', { params -> execute('let s:message = params') })
-        call s:recv(l:c, {
-        \   'method': 'test',
-        \   'params': l:payload
-        \ })
-        call s:expect(s:message).to_equal(l:payload)
-      endfor
-      call themis#log(reltimefloat(reltime(l:reltime)))
+      call s:expect(s:message).to_equal(l:params)
     End
 
   End
