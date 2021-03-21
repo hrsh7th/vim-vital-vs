@@ -1,0 +1,35 @@
+let s:expect = themis#helper('expect')
+let s:Connection = vital#vital#import('VS.RPC.JSON.Connection')
+
+Describe vital#__vital__#VS#RPC#JSON#Connection
+
+  Describe #on_stdout
+
+    It should receive message
+      let l:c = s:Connection.new({})
+      call l:c.on_notification('test', { params -> execute('let s:message = params') })
+      call s:recv(l:c, {
+      \   'method': 'test',
+      \   'params': {
+      \     'test': 1
+      \   }
+      \ })
+      call s:expect(s:message).to_equal({ 'test': 1 })
+      call s:recv(l:c, {
+      \   'method': 'test',
+      \   'params': {
+      \     'test': 2
+      \   }
+      \ })
+      call s:expect(s:message).to_equal({ 'test': 2 })
+    End
+
+  End
+
+End
+
+function! s:recv(c, message) abort
+  let l:message = json_encode(a:message)
+  call a:c._on_stdout(['Content-Length: ' . strlen(l:message) . "\r\n\r\n" . l:message])
+endfunction
+
