@@ -77,24 +77,6 @@ Describe vital#__vital__#VS#Vim#Syntax#Markdown
       call s:expect(s:syntax(5, 17)).to_equal('vimString')
     End
 
-    It should apply fenced code block with specified filetype map
-      call setline(1, [
-      \   'Header',
-      \   '===',
-      \   '',
-      \   '```viml',
-      \   'call getbufline("%", "^", "$")',
-      \   '```',
-      \ ])
-
-      call s:Markdown.apply({
-      \   'viml': 'vim',
-      \ })
-
-      call s:expect(s:syntax(1, 1)).to_equal('markdownH1')
-      call s:expect(s:syntax(5, 17)).to_equal('vimString')
-    End
-
   End
 
 End
