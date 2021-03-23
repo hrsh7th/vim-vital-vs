@@ -145,15 +145,13 @@ endfunction
 " _on_stdout
 "
 function! s:Connection._on_stdout(data) abort
-  let l:data = join(a:data, "\n")
-
   if self._content_length == -1
-    if !self._on_header(l:data)
+    if !self._on_header(a:data)
       return
     endif
   else
-    call add(self._contents, l:data)
-    let self._current_content_length += strlen(l:data)
+    call add(self._contents, a:data)
+    let self._current_content_length += strlen(a:data)
     if self._current_content_length < self._content_length
       return
     endif

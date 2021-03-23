@@ -23,9 +23,9 @@ End
 
 function! s:recv(c, message) abort
   let l:message = json_encode(a:message)
-  call a:c._on_stdout(['Content-Length: ' . strlen(l:message) . "\r\n\r\n"])
+  call a:c._on_stdout('Content-Length: ' . strlen(l:message) . "\r\n\r\n")
   for l:chunk in split(l:message, '....................\zs')
-    call a:c._on_stdout([l:chunk])
+    call a:c._on_stdout(l:chunk)
   endfor
 endfunction
 
