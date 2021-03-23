@@ -170,7 +170,7 @@ function! s:Connection._on_stdout(data) abort
   let self._content_length = -1
   let self._current_content_length = 0
   if l:remain !=# ''
-    call self._on_stdout([l:remain])
+    call self._on_stdout(l:remain)
   endif
 endfunction
 
