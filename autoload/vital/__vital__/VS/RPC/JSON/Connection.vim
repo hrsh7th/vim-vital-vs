@@ -133,6 +133,20 @@ function! s:Connection.on_notification(method, callback) abort
 endfunction
 
 "
+" on_stderr
+"
+function! s:Connection.on_stderr(callback) abort
+  call self._job.on_stderr(a:callback)
+endfunction
+
+"
+" on_stderr
+"
+function! s:Connection.on_exit(callback) abort
+  call self._job.on_exit(a:callback)
+endfunction
+
+"
 " _send
 "
 function! s:Connection._send(message) abort
