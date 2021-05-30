@@ -44,11 +44,13 @@ Describe vital#__vital__#VS#VimL#Dict
     End
 
     It should throw exception
+      let l:exceptoin = v:null
       try
-        call s:Dict.set(s:dict, ['set', 'a', 'b', 'c'], 1)
+        call s:Dict.set(s:dict, ['set', 'a', 'b', 'c', 'd'], 1)
       catch /.*/
-        call s:expect(v:exception).to_equal('VS.VimL.Dict: `set.a.b.c` is not dict.')
+        let l:exception = v:exception
       endtry
+      call s:expect(l:exception).to_equal("VS.VimL.Dict: `['set', 'a', 'b', 'c']` is not dict.")
     End
 
   End
@@ -63,11 +65,13 @@ Describe vital#__vital__#VS#VimL#Dict
     End
 
     It should throw exception
+      let l:exceptoin = v:null
       try
-        call s:Dict.remove(s:dict, ['set', 'a', 'b', 'c'])
+        call s:Dict.remove(s:dict, ['set', 'a', 'b', 'c', 'd'])
       catch /.*/
-        call s:expect(v:exception).to_equal('VS.VimL.Dict: `set.a.b.c` is not dict.')
+        let l:exception = v:exception
       endtry
+      call s:expect(l:exception).to_equal("VS.VimL.Dict: `['set', 'a', 'b', 'c']` is not dict.")
     End
 
   End

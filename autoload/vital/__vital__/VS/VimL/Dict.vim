@@ -28,7 +28,7 @@ function! s:set(dict, keys, value) abort
     let l:V = l:V[l:key]
   endfor
   if type(l:V) != v:t_dict
-    throw printf('VS.VimL.Dict: `%s` is not dict.', a:keys)
+    throw printf('VS.VimL.Dict: `%s` is not dict.', a:keys[:  -2])
   endif
   let l:V[a:keys[-1]] = a:value
 endfunction
@@ -48,7 +48,7 @@ function! s:remove(dict, keys) abort
     let l:V = l:V[l:key]
   endfor
   if type(l:V) != v:t_dict
-    throw printf('VS.VimL.Dict: `%s` is not dict.', a:keys)
+    throw printf('VS.VimL.Dict: `%s` is not dict.', a:keys[: -2])
   endif
   unlet l:V[a:keys[-1]]
 endfunction
