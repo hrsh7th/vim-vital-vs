@@ -357,7 +357,7 @@ if has('nvim')
   function! s:_style(style) abort
     let l:style = s:_resolve_origin(a:style)
     let l:style = s:_resolve_border(l:style)
-    return {
+    let l:style = {
     \   'relative': 'editor',
     \   'row': l:style.row - 1,
     \   'col': l:style.col - 1,
@@ -367,6 +367,10 @@ if has('nvim')
     \   'style': 'minimal',
     \   'border': has_key(l:style, 'border') ? l:style.border : 'none',
     \ }
+    if !exists('*win_execute') " We can't detect neovim features via patch version so we try it by function existence.
+      unlet l:style.border
+    endif
+    return l:style
   endfunction
 else
   function! s:_style(style) abort
