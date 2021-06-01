@@ -1,5 +1,10 @@
+"
+" test
+"
 let s:expect = themis#helper('expect')
 let s:Buffer = vital#vital#import('VS.Vim.Buffer')
+
+let s:filepath = globpath(&runtimepath, 'autoload/vital/__vital__/VS/Vim/Buffer.vimspec')
 
 Describe vital#__vital__#VS#Vim#Buffer
 
@@ -27,12 +32,58 @@ Describe vital#__vital__#VS#Vim#Buffer
 
   End
 
+  Describe #create
+
+    It should create new dummy buffer
+      let l:bufnr = s:Buffer.create('VS_Vim_Buffer_create:test')
+      call s:expect(bufexists(l:bufnr)).to_equal(1)
+      call s:expect(bufloaded(l:bufnr)).to_equal(1)
+    End
+
+  End
+
+  Describe #ensure
+
+    It should ensure specified bufname
+      let l:bufname = 'VS_Vim_Buffer_ensure:test'
+      call s:expect(bufexists(l:bufname)).to_equal(0)
+      call s:Buffer.ensure(l:bufname)
+      call s:expect(bufexists(l:bufname)).to_equal(1)
+    End
+
+  End
+
   Describe #load
 
     It should load buffer
       let l:bufnr = s:Buffer.load('test')
       call setbufline(l:bufnr, 1, ['1', '2', '3'])
       call s:expect(getbufline(l:bufnr, '^', '$')).to_equal(['1', '2', '3'])
+    End
+
+  End
+
+  Describe #do
+
+    It should do some commands on the specified buffer
+      let l:bufnr = s:Buffer.load('VS_Vim_Buffer_do:test')
+      call s:Buffer.do(l:bufnr, { -> setbufline('%', 1, 'test') })
+      call s:expect(getbufline(l:bufnr, 1)).to_equal(['test'])
+    End
+
+  End
+
+  Describe #psedo
+
+    It should create new psedo buffer that automatically loaded by autocmd
+      let l:bufnr = s:Buffer.psedo(s:filepath)
+      call s:expect(bufloaded(l:bufnr)).to_equal(0)
+      execute printf('%sbuffer', l:bufnr)
+      call s:expect(bufloaded(l:bufnr)).to_equal(1)
+      call s:expect(getbufline(l:bufnr, 2)).to_equal(['" test'])
+      call s:Buffer.do(l:bufnr, { -> execute('1,$delete _') })
+      execute printf('doautocmd VS_Vim_Buffer_psedo:%s BufReadCmd %s', l:bufnr, bufname(l:bufnr))
+      call s:expect(getbufline(l:bufnr, 2)).not.to_equal(['" test'])
     End
 
   End
