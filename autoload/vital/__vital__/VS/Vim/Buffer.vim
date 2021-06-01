@@ -95,23 +95,23 @@ function! s:do(bufnr, func) abort
 endfunction
 
 "
-" psedo
+" pseudo
 "
-function! s:psedo(filepath) abort
+function! s:pseudo(filepath) abort
   if !filereadable(a:filepath)
     throw printf('VS.Vim.Buffer: `%s` is not valid filepath.', a:filepath)
   endif
 
-  " create psedo buffer
-  let l:bufname = printf('VSVimBuffer://%s', a:filepath)
+  " create pseudo buffer
+  let l:bufname = printf('VSVimBufferPseudo://%s', a:filepath)
   if bufexists(l:bufname)
     return s:ensure(l:bufname)
   endif
 
   let l:bufnr = s:ensure(l:bufname)
-  let l:group = printf('VS_Vim_Buffer_psedo:%s', l:bufnr)
+  let l:group = printf('VS_Vim_Buffer_pseudo:%s', l:bufnr)
   execute printf('augroup %s', l:group)
-    execute printf('autocmd BufReadCmd <buffer=%s> call setline(1, readfile(bufname("%")[14 : -1])) | try | filetype detect | catch /.*/ | endtry | augroup %s | autocmd! | augroup END', l:bufnr, l:group)
+    execute printf('autocmd BufReadCmd <buffer=%s> call setline(1, readfile(bufname("%")[20 : -1])) | try | filetype detect | catch /.*/ | endtry | augroup %s | autocmd! | augroup END', l:bufnr, l:group)
   augroup END
   return l:bufnr
 endfunction

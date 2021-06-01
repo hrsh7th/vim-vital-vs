@@ -73,16 +73,16 @@ Describe vital#__vital__#VS#Vim#Buffer
 
   End
 
-  Describe #psedo
+  Describe #pseudo
 
-    It should create new psedo buffer that automatically loaded by autocmd
-      let l:bufnr = s:Buffer.psedo(s:filepath)
+    It should create new pseudo buffer that automatically loaded by autocmd
+      let l:bufnr = s:Buffer.pseudo(s:filepath)
       call s:expect(bufloaded(l:bufnr)).to_equal(0)
       execute printf('%sbuffer', l:bufnr)
       call s:expect(bufloaded(l:bufnr)).to_equal(1)
       call s:expect(getbufline(l:bufnr, 2)).to_equal(['" test'])
       call s:Buffer.do(l:bufnr, { -> execute('1,$delete _') })
-      execute printf('doautocmd VS_Vim_Buffer_psedo:%s BufReadCmd %s', l:bufnr, bufname(l:bufnr))
+      execute printf('doautocmd VS_Vim_Buffer_pseudo:%s BufReadCmd %s', l:bufnr, bufname(l:bufnr))
       call s:expect(getbufline(l:bufnr, 2)).not.to_equal(['" test'])
     End
 
