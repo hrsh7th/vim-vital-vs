@@ -1,5 +1,6 @@
 set encoding=utf-8
 set hidden
+set debug=throw
 
 let s:misc = expand('<sfile>:p:h') . '/misc'
 

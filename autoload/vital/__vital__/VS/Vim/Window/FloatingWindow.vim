@@ -463,7 +463,7 @@ function! s:_init() abort
     return
   endif
   let s:has_init = v:true
-  augroup printf('<sfile>')
+  augroup printf('VS_Vim_Window_FloatingWindow:%s', expand('<sfile>'))
     autocmd!
     autocmd WinEnter * call <SID>_notify_closed()
   augroup END

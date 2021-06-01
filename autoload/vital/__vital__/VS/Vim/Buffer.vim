@@ -27,29 +27,43 @@ endif
 "
 function! s:create(...) abort
   let g:___VS_Vim_Buffer_id += 1
-  let l:bufnr = bufnr(printf('VS.Vim.Buffer: %s: %s',
+  let l:bufname = printf('VS.Vim.Buffer: %s: %s',
   \   g:___VS_Vim_Buffer_id,
   \   get(a:000, 0, 'VS.Vim.Buffer.Default')
-  \ ), v:true)
-  call s:load(l:bufnr)
-  return l:bufnr
+  \ )
+  return s:load(l:bufname)
+endfunction
+
+"
+" ensure
+"
+function! s:ensure(expr) abort
+  if !bufexists(a:expr)
+    if type(a:expr) == type(0)
+      throw printf('VS.Vim.Buffer: `%s` is not valid expr.', l:bufnr)
+    else
+      badd `=a:expr`
+    endif
+  endif
+  return bufnr(a:expr)
 endfunction
 
 "
 " load
 "
 if exists('*bufload')
-  function! s:load(bufnr_or_path) abort
-    let l:bufnr = bufnr(a:bufnr_or_path, v:true)
-    silent call bufload(l:bufnr)
+  function! s:load(expr) abort
+    let l:bufnr = s:ensure(a:expr)
+    if !bufloaded(l:bufnr)
+      call bufload(l:bufnr)
+    endif
     return l:bufnr
   endfunction
 else
-  function! s:load(bufnr_or_path) abort
+  function! s:load(expr) abort
     let l:curr_bufnr = bufnr('%')
-
     try
-      let l:bufnr = bufnr(a:bufnr_or_path, v:true)
+      let l:bufnr = s:ensure(a:expr)
       execute printf('keepalt keepjumps silent %sbuffer', l:bufnr)
     catch /.*/
       echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
@@ -78,5 +92,27 @@ function! s:do(bufnr, func) abort
   finally
     execute printf('noautocmd keepalt keepjumps silent %sbuffer', l:curr_bufnr)
   endtry
+endfunction
+
+"
+" psedo
+"
+function! s:psedo(filepath) abort
+  if !filereadable(a:filepath)
+    throw printf('VS.Vim.Buffer: `%s` is not valid filepath.', a:filepath)
+  endif
+
+  " create psedo buffer
+  let l:bufname = printf('VSVimBuffer://%s', a:filepath)
+  if bufexists(l:bufname)
+    return s:ensure(l:bufname)
+  endif
+
+  let l:bufnr = s:ensure(l:bufname)
+  let l:group = printf('VS_Vim_Buffer_psedo:%s', l:bufnr)
+  execute printf('augroup %s', l:group)
+    execute printf('autocmd BufReadCmd <buffer=%s> call setline(1, readfile(bufname("%")[14 : -1])) | try | filetype detect | catch /.*/ | endtry | augroup %s | autocmd! | augroup END', l:bufnr, l:group)
+  augroup END
+  return l:bufnr
 endfunction
 
