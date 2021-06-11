@@ -106,29 +106,32 @@ Describe vital#__vital__#VS#Vim#Window#FloatingWindow
     End
 
     It should not callback on move with other bufnr (vim only)
-      if has('nvim')
-        return
-      endif
-
       let s:closed = 0
       let l:win = s:FloatingWindow.new({
       \   'on_closed': { -> execute('let s:closed += 1') }
       \ })
       call l:win.set_bufnr(s:Buffer.create())
+      call setbufline(l:win.get_bufnr(), 1, [1,2,3,4,5,6,7,8,9,0])
       call l:win.open({
       \   'row': 1,
       \   'col': 1,
-      \   'width': 10,
-      \   'height': 10,
+      \   'width': 3,
+      \   'height': 3,
+      \   'topline': 3,
       \ })
+      call s:expect(l:win.info().topline).to_equal(3)
       call l:win.set_bufnr(s:Buffer.create())
+      call setbufline(l:win.get_bufnr(), 1, [1,2,3,4,5,6,7,8,9,0])
       call l:win.open({
       \   'row': 1,
       \   'col': 1,
-      \   'width': 10,
-      \   'height': 10,
+      \   'width': 3,
+      \   'height': 3,
+      \   'topline': 5,
       \ })
       call s:expect(s:closed).to_equal(0)
+      call s:expect(l:win.info().topline).to_equal(5)
+      cal l:win.close()
     End
 
     It should callback on closed by command (nvim only)
