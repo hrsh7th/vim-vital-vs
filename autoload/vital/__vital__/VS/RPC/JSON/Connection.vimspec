@@ -17,6 +17,19 @@ Describe vital#__vital__#VS#RPC#JSON#Connection
       call s:expect(s:message).to_equal(l:params)
     End
 
+    It should performant
+      let l:payload = {
+      \   'method': 'test',
+      \   'params': repeat([{
+      \     'abcdefg': '1000000000000000000000000',
+      \     'hijklmn': '2000000000000000000000000',
+      \   }], 10000)
+      \ }
+      let l:time = reltime()
+      call s:recv(s:Connection.new({}), l:payload)
+      call themis#log('time: %sms', reltimefloat(reltime(l:time)) * 1000)
+    End
+
   End
 
 End
@@ -24,7 +37,7 @@ End
 function! s:recv(c, message) abort
   let l:message = json_encode(a:message)
   call a:c._on_stdout('Content-Length: ' . strlen(l:message) . "\r\n\r\n")
-  for l:chunk in split(l:message, '....................\zs')
+  for l:chunk in split(l:message, '..................................................\zs')
     call a:c._on_stdout(l:chunk)
   endfor
 endfunction

@@ -162,33 +162,34 @@ endfunction
 " _on_stdout
 "
 function! s:Connection._on_stdout(data) abort
-  if self._content_length == -1
-    if !self._on_header(a:data)
-      return
+  let l:data = a:data
+  while l:data !=# ''
+    if self._content_length == -1
+      if !self._on_header(l:data)
+        return
+      endif
+    else
+      let self._contents += [l:data]
+      let self._current_content_length += strlen(l:data)
+      if self._current_content_length < self._content_length
+        return
+      endif
     endif
-  else
-    call add(self._contents, a:data)
-    let self._current_content_length += strlen(a:data)
-    if self._current_content_length < self._content_length
-      return
-    endif
-  endif
 
-  let l:buffer = join(self._contents, '')
-  let l:content = strpart(l:buffer, 0, self._content_length)
-  let l:remain = strpart(l:buffer, self._content_length)
-  try
-    call self._on_message(json_decode(l:content))
-  catch /.*/
-    echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
-  endtry
-  let self._headers = []
-  let self._contents = []
-  let self._content_length = -1
-  let self._current_content_length = 0
-  if l:remain !=# ''
-    call self._on_stdout(l:remain)
-  endif
+    let l:buffer = join(self._contents, '')
+    let l:content = strpart(l:buffer, 0, self._content_length)
+    let l:remain = strpart(l:buffer, self._content_length)
+    try
+      call self._on_message(json_decode(l:content))
+    catch /.*/
+      echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+    endtry
+    let self._headers = []
+    let self._contents = []
+    let self._content_length = -1
+    let self._current_content_length = 0
+    let l:data = l:remain
+  endwhile
 endfunction
 
 "
@@ -197,13 +198,13 @@ endfunction
 function! s:Connection._on_header(data) abort
   let l:header_offset = stridx(a:data, "\r\n\r\n") + 4
   if l:header_offset < 4
-    call add(self._headers, a:data)
+    let self._headers += [a:data]
     return v:false
   elseif l:header_offset == strlen(a:data)
-    call add(self._headers, a:data)
+    let self._headers += [a:data]
   else
-    call add(self._headers, strpart(a:data, 0, l:header_offset))
-    call add(self._contents, strpart(a:data, l:header_offset))
+    let self._headers += [strpart(a:data, 0, l:header_offset)]
+    let self._contents += [strpart(a:data, l:header_offset)]
     let self._current_content_length += strlen(self._contents[-1])
   endif
   let self._content_length = str2nr(get(matchlist(join(self._headers, ''), '\ccontent-length:\s*\(\d\+\)'), 1, '-1'))
@@ -214,14 +215,18 @@ endfunction
 " _on_message
 "
 function! s:Connection._on_message(message) abort
-  if !has_key(a:message, 'id') && has_key(a:message, 'method')
-    call self._handle_notification(a:message)
-  elseif has_key(a:message, 'id') && has_key(a:message, 'method') 
-    call self._handle_request(a:message)
-  elseif has_key(a:message, 'id')
-    call self._handle_response(a:message)
+  if has_key(a:message, 'id')
+    if has_key(a:message, 'method') 
+      call self._handle_request(a:message)
+    else
+      call self._handle_response(a:message)
+    endif
   else
-    call self._hook.on_unknown(a:message)
+    if has_key(a:message, 'method')
+      call self._handle_notification(a:message)
+    else
+      call self._hook.on_unknown(a:message)
+    endif
   endif
 endfunction
 
