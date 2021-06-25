@@ -11,15 +11,19 @@ Describe vital#__vital__#VS#LSP#MarkupContent
       call s:expect(s:MarkupContent.normalize({ 'language': 'vim', 'value': 'test' })).to_be_string()
     End
 
-    It should convert string as compact
+    It should keep one-line if codeblock occurs continuously
       call s:expect(s:MarkupContent.normalize(join([
-      \   '',
       \   '```typescript',
       \   'console.log(variable)',
       \   '```',
       \   '',
+      \   '```typescript',
+      \   'console.log(variable)',
+      \   '```',
       \ ], "\n"))).to_equal(join([
-      \   '```typescript console.log(variable) ```'
+      \   '```typescript console.log(variable) ```',
+      \   '',
+      \   '```typescript console.log(variable) ```',
       \ ], "\n"))
     End
 
