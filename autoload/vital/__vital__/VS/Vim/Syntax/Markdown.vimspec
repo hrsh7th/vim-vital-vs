@@ -47,10 +47,9 @@ Describe vital#__vital__#VS#Vim#Syntax#Markdown
       call s:expect(s:syntax(13, 2)).to_equal('markdownCode')
       set conceallevel=2
 
-
-      call s:expect(synconcealed(16, 1)[1]).to_equal('`')
-      call s:expect(synconcealed(16, 4)[1]).to_equal('-')
-      call s:expect(synconcealed(16, 7)[1]).to_equal('\')
+      call s:expect(synconcealed(16, 1)[1]).to_equal('')
+      call s:expect(synconcealed(16, 4)[1]).to_equal('')
+      call s:expect(synconcealed(16, 7)[1]).to_equal('')
 
       call s:expect(synconcealed(19, 1)[1]).to_equal('<')
       call s:expect(synconcealed(19, 6)[1]).to_equal('>')

@@ -1,0 +1,10 @@
+```lua
+function
+```
+```lua function string.byte(s: string, i?: number, j?: number)
+  -> number
+  2. any ```
+---
+Returns the internal numeric codes of the characters `s[i], s[i+1], ..., s[j]`.
+[View documents](http://www.lua.org/manual/5.1/manual.html#pdf-string.byte)
+
