@@ -15,20 +15,27 @@ endfunction
 "
 " normalize
 "
-function! s:normalize(markup_content) abort
+function! s:normalize(markup_content, ...) abort
+  let l:option = get(a:000, 0, {})
+  let l:option.compact = get(l:option, 'compact', v:true)
+
+  let l:normalized = ''
   if type(a:markup_content) == type('')
-    return s:_compact(a:markup_content)
+    let l:normalized = a:markup_content
   elseif type(a:markup_content) == type([])
-    return s:_compact(join(a:markup_content, "\n"))
+    let l:normalized = join(a:markup_content, "\n")
   elseif type(a:markup_content) == type({})
-    let l:string = a:markup_content.value
+    let l:normalized = a:markup_content.value
     if has_key(a:markup_content, 'language')
-      let l:string = '```' . a:markup_content.language . ' ' . l:string . ' ```'
+      let l:normalized = '```' . a:markup_content.language . ' ' . l:normalized . ' ```'
     elseif get(a:markup_content, 'kind', 'plaintext') ==# 'plaintext'
-      let l:string = '<text>' . l:string . '</text>'
+      let l:string = '```plaintext ' . l:string . ' ```'
     endif
-    return s:_compact(l:string)
   endif
+  if l:option.compact
+    return s:_compact(l:normalized)
+  endif
+  return l:normalized
 endfunction
 
 "
