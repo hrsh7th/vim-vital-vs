@@ -225,12 +225,13 @@ endfunction
 " init
 "
 let s:has_init = v:false
+let s:filepath = expand('<sfile>:p')
 function! s:_init() abort
   if s:has_init || !has('nvim')
     return
   endif
   let s:has_init = v:true
-  augroup printf('VS_Vim_Window_SplitWindow:%s', expand('<sfile>'))
+  execute printf('augroup VS_Vim_Window_SplitWindow:%s', s:filepath)
     autocmd!
     autocmd WinEnter * call <SID>_notify_closed()
   augroup END
