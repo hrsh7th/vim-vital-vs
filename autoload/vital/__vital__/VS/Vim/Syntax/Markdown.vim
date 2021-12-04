@@ -54,7 +54,11 @@ function! s:apply(...) abort
 
       let l:filetype_group = substitute(toupper(l:filetype), '\.', '_', 'g')
       if !has_key(b:___VS_Vim_Syntax_Markdown.filetypes, l:filetype_group)
-        call s:_execute('syntax include @%s syntax/%s.vim', l:filetype_group, l:filetype)
+        try
+          call s:_execute('syntax include @%s syntax/%s.vim', l:filetype_group, l:filetype)
+        catch
+          unsilent echomsg printf('Fail to apply "syntax/%s.vim". Add "syntax/%s.vim" to runtimepath for suppress message', l:filetype, l:filetype)
+        endtry
         let b:___VS_Vim_Syntax_Markdown.filetypes[l:filetype_group] = v:true
       endif
 
