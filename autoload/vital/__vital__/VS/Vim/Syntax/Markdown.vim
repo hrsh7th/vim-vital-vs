@@ -54,11 +54,7 @@ function! s:apply(...) abort
 
       let l:filetype_group = substitute(toupper(l:filetype), '\.', '_', 'g')
       if !has_key(b:___VS_Vim_Syntax_Markdown.filetypes, l:filetype_group)
-        try
-          call s:_execute('syntax include @%s syntax/%s.vim', l:filetype_group, l:filetype)
-        catch
-          unsilent echomsg printf('Fail to apply "syntax/%s.vim". Add "syntax/%s.vim" to runtimepath for suppress message', l:filetype, l:filetype)
-        endtry
+        call s:_execute('syntax include @%s syntax/%s.vim', l:filetype_group, l:filetype)
         let b:___VS_Vim_Syntax_Markdown.filetypes[l:filetype_group] = v:true
       endif
 
@@ -69,7 +65,7 @@ function! s:apply(...) abort
       \   l:filetype_group
       \ )
     catch /.*/
-      unsilent echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+      unsilent echomsg printf('Fail to apply "syntax/%s.vim". Add "let g:markdown_fenced_languages = ["%s=$FILETYPE"]" to enable syntax', l:filetype, l:filetype)
     endtry
   endfor
 endfunction
