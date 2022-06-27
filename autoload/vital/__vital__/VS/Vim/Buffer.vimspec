@@ -2,6 +2,7 @@
 " test
 "
 let s:expect = themis#helper('expect')
+let s:assert = themis#helper('assert')
 let s:Buffer = vital#vital#import('VS.Vim.Buffer')
 
 let s:filepath = globpath(&runtimepath, 'autoload/vital/__vital__/VS/Vim/Buffer.vimspec')
@@ -49,6 +50,47 @@ Describe vital#__vital__#VS#Vim#Buffer
       call s:expect(bufexists(l:bufname)).to_equal(0)
       call s:Buffer.ensure(l:bufname)
       call s:expect(bufexists(l:bufname)).to_equal(1)
+    End
+
+  End
+
+  Describe #add
+
+    It should add buffer
+      let l:bufname1 = 'VS_Vim_Buffer_badd:test1'
+      call s:expect(bufexists(l:bufname1)).to_equal(0)
+      call s:Buffer.add(l:bufname1)
+      call s:expect(bufexists(l:bufname1)).to_equal(1)
+
+      if exists('*bufadd')
+        let l:bufname2 = 'VS_Vim_Buffer_badd:test2'
+        badd `=l:bufname2`
+        let l:buf1info = filter(getbufinfo(l:bufname1)[0], 'v:key !~# "name\\|bufnr"')
+        let l:buf2info = filter(getbufinfo(l:bufname2)[0], 'v:key !~# "name\\|bufnr"')
+        call s:expect(l:buf1info).to_equal(l:buf2info)
+      endif
+    End
+
+    It does not raise E11 error even in cmdwin (when bufadd() exists)
+      if !exists('*bufadd')
+        call s:assert.skip('Missing bufadd()')
+      endif
+      function TestInCmdwin() abort
+        call s:expect(getcmdwintype()).not.to_equal('')
+        try
+          call s:Buffer.add('VS_Vim_Buffer_badd:test_no_throw')
+        catch /^Vim\%((\a\+)\)\=:E11:/
+          call s:assert.fail('E11 error raised.')
+        endtry
+        return ''
+      endfunction
+      nnoremap <expr> @ TestInCmdwin()
+      try
+        execute "normal q:@:q\<CR>"
+      finally
+        nunmap @
+        delfunction TestInCmdwin
+      endtry
     End
 
   End
