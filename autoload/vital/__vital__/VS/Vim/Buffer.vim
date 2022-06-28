@@ -42,10 +42,24 @@ function! s:ensure(expr) abort
     if type(a:expr) == type(0)
       throw printf('VS.Vim.Buffer: `%s` is not valid expr.', a:expr)
     endif
-    badd `=a:expr`
+    call s:add(a:expr)
   endif
   return bufnr(a:expr)
 endfunction
+
+"
+" add
+"
+if exists('*bufadd')
+  function! s:add(name) abort
+    let l:bufnr = bufadd(a:name)
+    call setbufvar(l:bufnr, '&buflisted', 1)
+  endfunction
+else
+  function! s:add(name) abort
+    badd `=a:name`
+  endfunction
+endif
 
 "
 " load
