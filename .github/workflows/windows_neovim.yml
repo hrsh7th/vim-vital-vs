@@ -45,6 +45,7 @@ jobs:
         shell: cmd
         run: |
           SET PATH=%USERPROFILE%\Neovim\bin;%PATH%;
+          SET PATH=%USERPROFILE%\nvim-win64\bin;%PATH%;
           SET PATH=%USERPROFILE%\themis\bin;%PATH%;
           SET THEMIS_VIM=nvim
           nvim --version
