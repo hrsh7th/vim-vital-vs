@@ -27,6 +27,26 @@ Describe vital#__vital__#VS#LSP#MarkupContent
       \ ], "\n"))
     End
 
+    It should not compact codeblock
+      call s:expect(s:MarkupContent.normalize(join([
+      \   '```typescript',
+      \   'console.log(variable)',
+      \   '```',
+      \   '',
+      \   '```typescript',
+      \   'console.log(variable)',
+      \   '```',
+      \ ], "\r\n"), { 'compact': v:false })).to_equal(join([
+      \   '```typescript',
+      \   'console.log(variable)',
+      \   '```',
+      \   '',
+      \   '```typescript',
+      \   'console.log(variable)',
+      \   '```',
+      \ ], "\n"))
+    End
+
   End
 
 End
