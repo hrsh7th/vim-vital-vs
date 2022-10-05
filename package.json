@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "lint": "vint ./autoload",
     "test": "run-s test:*",
     "test:vim": "THEMIS_VIM=vim themis .",
     "test:nvim": "THEMIS_VIM=nvim themis ."
