@@ -40,7 +40,6 @@ Describe vital#__vital__#VS#LSP#MarkupContent
       \   '```typescript',
       \   'console.log(variable)',
       \   '```',
-      \   '',
       \   '```typescript',
       \   'console.log(variable)',
       \   '```',

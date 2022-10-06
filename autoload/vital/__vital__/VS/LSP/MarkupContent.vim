@@ -31,19 +31,21 @@ function! s:normalize(markup_content, ...) abort
     endif
   endif
   let l:normalized = s:Text.normalize_eol(l:normalized)
-  if l:option.compact
-    let l:normalized = s:_compact(l:normalized)
-  endif
+  let l:normalized = s:_format(l:normalized, l:option.compact)
   return l:normalized
 endfunction
 
 "
-" _compact
+" _format
 "
-function! s:_compact(string) abort
+function! s:_format(string, compact) abort
   let l:string = a:string
-  let l:string = substitute(l:string, "\\%(\\s\\|\n\\)*```\\s*\\(\\w\\+\\)\\%(\\s\\|\n\\)\\+", "\n\n```\\1 ", 'g')
-  let l:string = substitute(l:string, "\\%(\\s\\|\n\\)\\+```\\%(\\s*\\%(\\%$\\|\n\\)\\)\\+", " ```\n\n", 'g')
+  if a:compact
+    let l:string = substitute(l:string, "\\%(\\s\\|\n\\)*```\\s*\\(\\w\\+\\)\\%(\\s\\|\n\\)\\+", "\n\n```\\1 ", 'g')
+    let l:string = substitute(l:string, "\\%(\\s\\|\n\\)\\+```\\%(\\s*\\%(\\%$\\|\n\\)\\)\\+", " ```\n\n", 'g')
+  else
+    let l:string = substitute(l:string, "```\n\\zs\\%(\\s\\|\n\\)\\+", "", 'g')
+  endif
   let l:string = substitute(l:string, "\\%^\\%(\\s\\|\n\\)*", '', 'g')
   let l:string = substitute(l:string, "\\%(\\s\\|\n\\)*\\%$", '', 'g')
   return l:string
