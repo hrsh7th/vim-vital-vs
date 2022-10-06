@@ -27,7 +27,11 @@ function! s:normalize(markup_content, ...) abort
   elseif type(a:markup_content) == type({})
     let l:normalized = a:markup_content.value
     if has_key(a:markup_content, 'language')
-      let l:normalized = '```' . a:markup_content.language . ' ' . l:normalized . ' ```'
+      let l:normalized = join([
+      \   '```' . a:markup_content.language,
+      \   l:normalized,
+      \   '```'
+      \ ], "\n")
     endif
   endif
   let l:normalized = s:Text.normalize_eol(l:normalized)
