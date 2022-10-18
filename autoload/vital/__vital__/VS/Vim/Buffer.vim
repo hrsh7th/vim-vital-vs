@@ -38,28 +38,24 @@ endfunction
 " ensure
 "
 function! s:ensure(expr) abort
-  if !bufexists(a:expr)
+  if !exists('g:__VS_Vim_Buffers')
+    let g:__VS_Vim_Buffers = {}
+  endif
+  if !has_key(g:__VS_Vim_Buffers, a:expr)
     if type(a:expr) == type(0)
       throw printf('VS.Vim.Buffer: `%s` is not valid expr.', a:expr)
     endif
     call s:add(a:expr)
   endif
-  return bufnr(a:expr)
+  return g:__VS_Vim_Buffers[a:expr]
 endfunction
 
 "
 " add
 "
-if exists('*bufadd')
-  function! s:add(name) abort
-    let l:bufnr = bufadd(a:name)
-    call setbufvar(l:bufnr, '&buflisted', 1)
-  endfunction
-else
-  function! s:add(name) abort
-    badd `=a:name`
-  endfunction
-endif
+function! s:add(name) abort
+  call extend(g:__VS_Vim_Buffers, { a:name : bufadd('') })
+endfunction
 
 "
 " load
