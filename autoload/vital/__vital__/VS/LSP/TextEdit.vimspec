@@ -18,6 +18,29 @@ Describe vital#__vital__#VS#LSP#TextEdit
 
   Describe #apply
 
+    Describe bufname
+      It should applied TextEdit to strange name buffer
+        call mkdir('/tmp/vital-vs/pages/[id]', 'p')
+        call writefile([''], '/tmp/vital-vs/pages/[id]/index.page.tsx')
+        edit /tmp/vital-vs/pages/[id]/index.page.tsx
+        call s:TextEdit.apply(expand('%:p'), [{
+        \  'range': {
+        \    'start': {
+        \      'line': 0,
+        \      'character': 0,
+        \    },
+        \    'end': {
+        \      'line': 0,
+        \      'character': 0,
+        \    },
+        \  },
+        \  'newText': 'abcde'
+        \ }])
+        call s:expect(getbufline('%', 1, '$')).to_equal(['abcde'])
+        write
+      End
+    End
+
     Describe cursor
 
       It should fix cursor position (singleline -> singleline)
