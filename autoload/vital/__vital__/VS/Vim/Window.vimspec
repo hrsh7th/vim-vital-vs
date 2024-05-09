@@ -38,6 +38,8 @@ Describe vital#__vital__#VS#Vim#Window
       call s:expect(s:Window.info(win_getid())).to_equal({
       \   'width': winwidth(0),
       \   'height': winheight(0),
+      \   'core_width': winwidth(0),
+      \   'core_height': winheight(0),
       \   'topline': 1,
       \ })
     End
@@ -53,15 +55,19 @@ Describe vital#__vital__#VS#Vim#Window
       let l:win = s:FloatingWindow.new()
       call l:win.set_bufnr(l:bufnr)
       call l:win.open({
+      \   'border': v:true,
       \   'row': 0,
       \   'col': 0,
       \   'width': 10,
       \   'height': 10,
       \ })
 
+      let l:compat_off = has('nvim') ? 0 : 2
       call s:expect(s:Window.info(l:win._winid)).to_equal({
-      \   'width': 10,
-      \   'height': 10,
+      \   'width': 10 + l:compat_off,
+      \   'height': 10 + l:compat_off,
+      \   'core_width': 8 + l:compat_off,
+      \   'core_height': 8 + l:compat_off,
       \   'topline': 1,
       \ })
 
