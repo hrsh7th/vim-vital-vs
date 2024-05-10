@@ -127,18 +127,20 @@ Describe vital#__vital__#VS#Vim#Window
       let l:win = s:FloatingWindow.new()
       call l:win.set_bufnr(l:bufnr)
       call l:win.open({
+      \   'border': v:true,
       \   'row': 0,
       \   'col': 0,
       \   'width': &columns,
       \   'height': 5,
       \ })
 
+      let l:compat_off = has('nvim') ? 2 : 0
       call s:Window.scroll(l:win._winid, 1)
       call s:expect(s:Window.info(l:win._winid).topline).to_equal(1)
       call s:Window.scroll(l:win._winid, s:Window.info(l:win._winid).topline + 4)
       call s:expect(s:Window.info(l:win._winid).topline).to_equal(5)
       call s:Window.scroll(l:win._winid, s:Window.info(l:win._winid).topline + 4)
-      call s:expect(s:Window.info(l:win._winid).topline).to_equal(7)
+      call s:expect(s:Window.info(l:win._winid).topline).to_equal(7 + l:compat_off)
     End
 
   End
